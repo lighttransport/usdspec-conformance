@@ -28,8 +28,9 @@ The axiom audit and both stock/local strict PCP ratchets pass. Clean source
 snapshot tests also exercise generation from absent local grammar data.
 Execution evidence: ignored `build/license-review/` and `build/license-results.xml`.
 
-Before public release, choose a reviewed fresh snapshot or explicitly authorize
-history cleanup: earlier commits retain the prior grammar and repaired examples.
-Review or remove earlier Actions logs/artifacts/caches as needed. Adding HEAD
-notices does not itself remove historical copies. No history rewrite, commit,
-push, visibility change, or claim of redistribution permission was made here.
+Follow-up: the historical full grammar tables and repaired example layers are
+being purged from every revision intended for publication, with complete notices
+backfilled. Old Actions runs and their cache were deleted as authorized. Private
+recovery bundles remain under ignored `build/` and must not be published.
+The history rewrite is prepared locally; its remote update requires an explicit
+lease-protected force-push. Visibility is unchanged.
