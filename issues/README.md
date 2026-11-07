@@ -13,6 +13,14 @@ checks it from scratch using this procedure.
 | `aousd/` | https://github.com/aousd/specifications-public/issues | `01`-`07`, one `.md` each (`01`-`04` already filed as #4-#7; `06`/`07` share the demo in `06-07-schema-demo/`; `08`-`12` were found by the Lean formalization in `verif/lean` (see `verif/lean/ISSUES.md`) and share the demo in `08-12-lean-demo/`; `13`-`21` are further Lean findings sharing `13-21-lean-demo/`) |
 | `OpenUSD/` | https://github.com/PixarAnimationStudios/OpenUSD/issues | `01` (connection-target validation semantics), `03` (includeRoot schema fallback); `ISSUE.md` + repro files in each dir, superseded versions omitted |
 
+## Scope
+
+Keep reports and minimal repros that explain Lean models, specification defects,
+USD semantic differences, or conformance-oracle behavior. General compiler bugs,
+renderer/build troubleshooting and optional output-determinism feature requests
+belong in their respective implementation repositories. Superseded incorrect
+issue versions are omitted; retain the current report and its review evidence.
+
 ## Ground rules for the reviewer
 
 1. **Don't trust the draft.** Treat every factual claim as unverified:
