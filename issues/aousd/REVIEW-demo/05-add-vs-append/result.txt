@@ -1,0 +1,10 @@
+OpenUSD: (0, 26, 11)
+strong_add.usda     ['/A', '/B']
+strong_append.usda  ['/B', '/A']
+addedItems          ['/A', '/B']
+appendedItems       ['/B', '/A']
+OpenUSD: (0, 26, 5)
+strong_add.usda     ['/A', '/B']
+strong_append.usda  ['/B', '/A']
+addedItems          ['/A', '/B']
+appendedItems       ['/B', '/A']

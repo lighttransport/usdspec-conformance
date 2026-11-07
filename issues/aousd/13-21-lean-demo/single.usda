@@ -1,0 +1,7 @@
+#usda 1.0
+(
+ relocates = { </P/A> : </P/B>, </P/C> : </P/A> }
+)
+def "P" ( references = @./refs.usda@</R> )
+{
+}

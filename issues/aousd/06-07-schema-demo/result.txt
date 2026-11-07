@@ -1,0 +1,12 @@
+OpenUSD (0, 26, 11)
+06: GetAutoApplyAPISchemas: DemoAutoAPI -> ['DemoPrim']  DemoOnAPI -> ['DemoStrongAPI']
+06: /typed       type 'DemoPrim' GetAppliedSchemas ['DemoAutoAPI']
+06: /autoApplied type ''         GetAppliedSchemas ['DemoAutoAPI']
+06: /strongOnly  type ''         GetAppliedSchemas ['DemoStrongAPI', 'DemoOnAPI']
+07: /both GetAppliedSchemas ['DemoStrongAPI', 'DemoOnAPI', 'DemoWeakAPI']
+07:   demo:mode default       = 'a'
+07:   demo:mode allowedTokens = Vt.TokenArray(2, ('a', 'b'))
+07:   demo:mode displayName   = 'Mode (weak)'
+07:   demo:mode displayGroup  = 'WeakGroup'
+07:   demo:mode hidden        = True
+07:   demo:mode documentation = None

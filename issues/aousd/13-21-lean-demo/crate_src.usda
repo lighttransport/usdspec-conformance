@@ -1,0 +1,11 @@
+#usda 1.0
+def Xform "A" {
+    def Mesh "B" {
+        double x = 1
+        double y = 2
+    }
+    def Scope "C" {
+    }
+}
+def Scope "D" {
+}

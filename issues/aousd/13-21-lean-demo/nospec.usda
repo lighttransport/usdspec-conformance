@@ -1,0 +1,7 @@
+#usda 1.0
+(
+    relocates = { </P/C/X> : </P/C/Y> }
+)
+def "P" ( references = @./nospec_ref.usda@</R> )
+{
+}

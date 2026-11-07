@@ -1,0 +1,5 @@
+#usda 1.0
+def "P"
+{
+    double v.timeSamples = { 4: 2, 12: 1, 16: 3 }
+}

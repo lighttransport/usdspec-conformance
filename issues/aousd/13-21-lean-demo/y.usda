@@ -1,0 +1,2 @@
+#usda 1.0
+(subLayers=[@./y1.usda@,@./y2.usda@])

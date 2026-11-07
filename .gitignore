@@ -1,3 +1,7 @@
 # cache and other artifacts produced by Lean's Lake build tool
 .lake/
+.lake
+build/
+__pycache__/
+*.pyc
 /verif/lean/UsdSpec/Usda/GeneratedRules.lean

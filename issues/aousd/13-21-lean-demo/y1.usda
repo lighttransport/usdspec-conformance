@@ -1,0 +1,17 @@
+#usda 1.0
+
+def "P" (
+    clips = {
+        dictionary default = {
+            double2[] active = [(0, 0)]
+            asset[] assetPaths = [@./clip.usda@]
+            asset manifestAssetPath = @./manifest.usda@
+            string primPath = "/P"
+            double2[] times = [(0, 0), (10, 10)]
+        }
+    }
+)
+{
+    custom double a
+}
+

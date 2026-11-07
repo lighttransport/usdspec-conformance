@@ -1,0 +1,7 @@
+pxr (0, 26, 11)
+08 a == b: False | same result on every input: True
+09 stack a>b>c       : {'x': {'y': 2}}
+09 (a∪b) over c      : {'x': {'y': 2}}
+09 a over (b∪c)      : {'x': {}}
+10 stage times of layer samples {4,12,16}: [12.0, 16.0, 18.0] | Get(12) = 2.0 (layer value at 4) | Get(16) = 1.0 (layer value at 12)
+11 B sample at 0 lands at stage time: [12.5]

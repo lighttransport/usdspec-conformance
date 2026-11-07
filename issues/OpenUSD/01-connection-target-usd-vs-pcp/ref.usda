@@ -1,0 +1,46 @@
+#usda 1.0
+(
+    relocates = {
+        </Rig/L/Anim/Src>: </Rig/Anim/L>,
+        </Rig/R/Anim/Src>: </Rig/Anim/R>
+    }
+)
+
+def "Rig"
+{
+    class "Sym"
+    {
+        def "Sculpt"
+        {
+            double amount = 0
+            prepend double amount.connect = [
+                </Rig/Anim/R.value>,
+                </Rig/Anim/L.value>,
+            ]
+        }
+
+        def "Anim"
+        {
+            def "Src"
+            {
+                double value = 1
+            }
+        }
+    }
+
+    def "L" (
+        inherits = </Rig/Sym>
+    )
+    {
+    }
+
+    def "R" (
+        inherits = </Rig/Sym>
+    )
+    {
+    }
+
+    def "Anim"
+    {
+    }
+}

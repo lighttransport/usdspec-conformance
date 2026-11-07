@@ -1,0 +1,58 @@
+Warning: in _ReportErrors at line 3326 of /mnt/nvme02/work/OpenUSD/pxr/usd/usd/stage.cpp -- Relocation from </P/A> to </P/B> authored at @single.usda@</> conflicts with another relocation from </P/C> to </P/A> authored at @single.usda@</> and will be ignored: The source of a relocate cannot be the target of another relocate in the same layer stack. (instantiating stage on stage @single.usda@ <0x55e48d6d6d90>)
+Warning: in _ReportErrors at line 3326 of /mnt/nvme02/work/OpenUSD/pxr/usd/usd/stage.cpp -- Relocation from </P/C> to </P/A> authored at @single.usda@</> conflicts with another relocation from </P/A> to </P/B> authored at @single.usda@</> and will be ignored: The target of a relocate cannot be the source of another relocate in the same layer stack. (instantiating stage on stage @single.usda@ <0x55e48d6d6d90>)
+pxr (0, 26, 11)
+13 IsValidPathString('/a{v=x}b/c') = True
+13 IsValidPathString('/World/Foo/Baz{VariantSet1=VarFoobar}Foobar.foobarprop1') = True
+13 IsValidPathString('/World/Bar{VariantSet2=VarBarFoo}{VariantSet3=VarBarBar}BarFoo') = True
+13 IsValidPathString('a.b.c') = (False, "Ill-formed SdfPath <a.b.c> at character 5 ('c'): expected 'mapper' or 'expression' after '.'")
+13 IsValidPathString('/a.b.c') = (False, "Ill-formed SdfPath </a.b.c> at character 6 ('c'): expected 'mapper' or 'expression' after '.'")
+13 IsValidPathString('a.b') = True
+13 IsValidPathString('..') = True
+13 IsValidPathString('../..') = True
+13 IsValidPathString('../../ParentSibilng/Cousin') = True
+13 IsValidPathString('/Root/Child/Grandchild{size=1}/GreatGrandchild') = (False, "Ill-formed SdfPath </Root/Child/Grandchild{size=1}/GreatGrandchild> at character 31 ('/'): expected end of path")
+13 IsValidPathString('/Root/Child/Grandchild{size=1}GreatGrandchild') = True
+14 pxr order of the L3534-3544 names: ['_foobar', 'a0', 'ab', 'aü', 'foo00001bar', 'foo001bar001abc', 'foo001bar002abc', 'foo0001bar0002xyz', 'foo_bar', 'Foobar', 'foobar']
+14 '_' vs digit, children a_ a0 _a: ['_a', 'a0', 'a_']
+15 MapFunction{(/B,/A),(/,/)}: /B -> /A | /A -> Sdf.Path.emptyPath | /C -> /C
+15 relocates∘reference as written (L4962-4966): {Sdf.Path('/Ref/B'): Sdf.Path('/A/C')}
+15 same with identity added to the relocates map  : {Sdf.Path('/Ref'): Sdf.Path('/A'), Sdf.Path('/Ref/B'): Sdf.Path('/A/C')}
+16 children of /P: ['A', 'C']
+16 error: Relocation from </P/A> to </P/B> authored at @single.usda@</> conflicts with another relocation from </P/C> to </P/A> authored at @single.usda@</> and will be i
+16 error: Relocation from </P/C> to </P/A> authored at @single.usda@</> conflicts with another relocation from </P/A> to </P/B> authored at @single.usda@</> and will be i
+17 children x a b, primOrder [b,a]: ['x', 'b', 'a']
+17 rename X->Y onto existing Y, no /P/C spec in the relocating stack: ['Y']
+17 propertyOrder [a,a] over {a,b}: ['a', 'b']
+18 s1 GetSpecifier() = Sdf.SpecifierDef | stack: [('s1.usda', '/A', 'SpecifierOver'), ('s1.usda', '/C', 'SpecifierDef'), ('s1.usda', '/B', 'SpecifierClass')]
+18 s2 GetSpecifier() = Sdf.SpecifierDef | stack: [('s2.usda', '/A', 'SpecifierOver'), ('s2.usda', '/C1', 'SpecifierClass'), ('s2.usda', '/C2', 'SpecifierDef')]
+18 s3 GetSpecifier() = Sdf.SpecifierDef | stack: [('s3.usda', '/A', 'SpecifierOver'), ('s3.usda', '/C1', 'SpecifierClass'), ('s3.usda', '/C2', 'SpecifierDef'), ('s3.usda', '/B', 'SpecifierClass')]
+19 w Get(5) = 5.0 | Get() = 5.0 | source: Usd.ResolveInfoSourceDefault
+19 v Get(5) = 1.5 | Get() = 5.0 | source: Usd.ResolveInfoSourceTimeSamples
+19 x Get(5) = 5.0 | Get() = 5.0 | source: Usd.ResolveInfoSourceDefault
+19 y Get(5) = 1.5 | Get() = 5.0 | source: Usd.ResolveInfoSourceValueClips
+19 z Get(5) = 5.0 | Get() = 5.0 | source: Usd.ResolveInfoSourceDefault
+20 GetPrimStack: [('ex6_root.usda', '/Root'), ('ex6_ref.usda', '/Ref'), ('ex6_ref.usda', '/Class_1'), ('ex6_ref.usda', '/Class_2')]
+20 index ArcTypeRoot ex6_root.usda /Root hasSpecs
+20 index   ArcTypeReference ex6_ref.usda /Ref hasSpecs
+20 index     ArcTypeSpecialize ex6_ref.usda /Class_1 hasSpecs
+20 index   ArcTypeSpecialize ex6_root.usda /Class_1 nospecs
+20 index     ArcTypeSpecialize ex6_root.usda /Class_2 nospecs
+20 index   ArcTypeSpecialize ex6_ref.usda /Class_1 hasSpecs
+20 index     ArcTypeSpecialize ex6_ref.usda /Class_2 hasSpecs
+20 index   ArcTypeSpecialize ex6_root.usda /Class_2 nospecs
+20 index   ArcTypeSpecialize ex6_ref.usda /Class_2 hasSpecs
+20 inherits variant GetPrimStack: [('ex6i_root.usda', '/Root'), ('ex6i_ref.usda', '/Ref'), ('ex6i_ref.usda', '/Class_1'), ('ex6i_ref.usda', '/Class_2')]
+19 value resolution get_value L6364-6442 : SyntaxError at spec line 6412 - expected ':'
+21 sections: [(136, 'TOKENS'), (274, 'STRINGS'), (282, 'FIELDS'), (404, 'FIELDSETS'), (448, 'PATHS'), (526, 'SPECS')]
+21 version bytes: [0, 8, 0] | tocOffset: 591 | earliest section start: 136 | bytes 24..88 all zero: True
+21 PATHS leading u64s: 7 7 | jumps: [-1, 5, 3, 0, -2, -2, -2]
+21 decoded tokens: ['', 'A', 'B', 'x', 'y', 'C', 'D']
+21 pxr reads it back: ['/', '/A', '/A/B', '/A/B.x', '/A/B.y', '/A/C', '/D']
+21 ValueRep specifier  0x402a000000000000  top byte 0x40 (bit63 array=0 bit62 inlined=1 bit61 compressed=0) | LSB-of-flag-byte reading: bit56=0 bit57=0 bit58=0
+21 ValueRep typeName   0x400b000000000006  top byte 0x40 (bit63 array=0 bit62 inlined=1 bit61 compressed=0) | LSB-of-flag-byte reading: bit56=0 bit57=0 bit58=0
+21 ValueRep typeName   0x400b00000000000a  top byte 0x40 (bit63 array=0 bit62 inlined=1 bit61 compressed=0) | LSB-of-flag-byte reading: bit56=0 bit57=0 bit58=0
+21 ValueRep typeName   0x400b00000000000e  top byte 0x40 (bit63 array=0 bit62 inlined=1 bit61 compressed=0) | LSB-of-flag-byte reading: bit56=0 bit57=0 bit58=0
+21 ValueRep typeName   0x400b000000000010  top byte 0x40 (bit63 array=0 bit62 inlined=1 bit61 compressed=0) | LSB-of-flag-byte reading: bit56=0 bit57=0 bit58=0
+21 ValueRep default    0x400900003f800000  top byte 0x40 (bit63 array=0 bit62 inlined=1 bit61 compressed=0) | LSB-of-flag-byte reading: bit56=0 bit57=0 bit58=0
+21 ValueRep default    0x4009000040000000  top byte 0x40 (bit63 array=0 bit62 inlined=1 bit61 compressed=0) | LSB-of-flag-byte reading: bit56=0 bit57=0 bit58=0
+21 references layer PATHS leading u64s: 3 2

@@ -1,0 +1,12 @@
+#usda 1.0
+class "C1" {
+}
+def "C2" {
+}
+class "B" {
+}
+over "A" (
+ inherits = [</C1>, </C2>]
+ references = </B>
+) {
+}

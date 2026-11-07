@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lean:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install elan
+        run: |
+          curl https://elan.lean-lang.org/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Cache hash-pinned Unicode reference data
+        uses: actions/cache@v4
+        with:
+          path: build/unicode-15.1.0
+          key: unicode-15.1.0-${{ hashFiles('verif/lean/data/unicode-15.1.0.json') }}
+      - name: Cache pinned Lean dependencies
+        uses: actions/cache@v4
+        with:
+          path: verif/lean/.lake/packages
+          key: lake-dependencies-only-${{ hashFiles('verif/lean/lake-manifest.json', 'verif/lean/lean-toolchain') }}
+      - name: Fetch Unicode data and Mathlib build cache
+        run: |
+          python3 scripts/fetch-lean-unicode-data.py
+          cd verif/lean && lake exe cache get
+      - name: Configure
+        run: cmake -S . -B build
+      - name: Proofs, axiom audit, vector drift, Unicode conformance, registry gates
+        run: ctest --test-dir build --output-on-failure --timeout 3600
+
+  differential:
+    # Replays the Lean vectors against LightUSD and stock OpenUSD 26.11.
+    # Requires repository variables LIGHTUSD_REPOSITORY (owner/name) and
+    # LIGHTUSD_REF (a pinned commit); skipped until they are configured.
+    if: ${{ vars.LIGHTUSD_REPOSITORY != '' && vars.LIGHTUSD_REF != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/checkout@v5
+        with:
+          repository: ${{ vars.LIGHTUSD_REPOSITORY }}
+          ref: ${{ vars.LIGHTUSD_REF }}
+          path: lightusd
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install elan
+        run: |
+          curl https://elan.lean-lang.org/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Build LightUSD tools
+        run: |
+          cmake -S lightusd -B lightusd/build -G Ninja -DCMAKE_BUILD_TYPE=Debug \
+            -DLIGHTUSD_NATIVE_PRODUCT=next -DLIGHTUSD_BUILD_TOOLS=ON -DLIGHTUSD_NEXT_BUILD_TESTS=ON
+          cmake --build lightusd/build --parallel 4 \
+            --target lusdcat lusdchecker test_name_order test_int64_listop
+      - name: Stock OpenUSD oracle
+        run: scripts/setup-oracle.sh
+      - name: Fetch AOUSD supplemental suite
+        run: echo "AOUSD_SUPPLEMENTAL_ROOT=$(scripts/fetch-aousd-supplemental.sh | tail -1)" >> "$GITHUB_ENV"
+      - name: Fetch Unicode data
+        run: python3 scripts/fetch-lean-unicode-data.py
+      - name: Configure and run
+        run: |
+          cmake -S . -B build -DLIGHTUSD_ROOT=$PWD/lightusd -DLIGHTUSD_BUILD_DIR=$PWD/lightusd/build \
+            -DORACLE_PYTHON=python3 -DORACLE_PYTHONPATH=$PWD/build/stock-openusd-oracle/site-packages \
+            -DAOUSD_SUPPLEMENTAL_ROOT=$AOUSD_SUPPLEMENTAL_ROOT
+          ctest --test-dir build -L conformance -j2 --output-on-failure --timeout 900
