@@ -45,7 +45,8 @@ Tests that need `LIGHTUSD_ROOT` report a skip when it is unset (exit 77), not a 
 
 ## Status
 
-See `doc/validation/lean-followup-status.md` (the ledger) for exact scope and
+See [`doc/STATUS.md`](doc/STATUS.md) for the full summary and
+`doc/validation/lean-followup-status.md` (the ledger) for exact scope and
 open items. Headline numbers at the time of the split:
 
 - Lean: full build, 20 generated artifacts with no drift, axiom audit (standard

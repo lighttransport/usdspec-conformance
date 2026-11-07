@@ -34,6 +34,10 @@ def main():
     for raw in (LEAN / 'ISSUES.md').read_text().split('\n'):
         if raw.startswith('| LEAN-'):
             cells = [c.strip() for c in raw.split('|')]
+            if len(cells) != 7:  # empty, id, decl, spec, claim, status, empty
+                print(f'  {cells[1] if len(cells) > 1 else raw[:12]}: malformed registry row ({len(cells)} cells; '
+                      'escape or avoid | inside cells)')
+                sys.exit(1)
             status[cells[1]] = cells[5]
     texts = [p.read_text() for p in (LEAN / 'UsdSpec').rglob('*.lean')]
     problems = []
