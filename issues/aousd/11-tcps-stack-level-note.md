@@ -11,7 +11,7 @@ from the local OpenUSD fork. Source references use the clean `v26.11.1` tag.
 
 ### What the spec says
 
-L5461-5466 (note):
+L5462-5467 (note):
 
 > The per-sublayer and per-reference adjustments below produce the same
 > effective offsets as computing the layer stack's timecodes-per-second divided
@@ -42,7 +42,7 @@ or drop it.
 
 ## Reviewer checklist
 
-- [ ] Quoted note at L5461-5466 and the sublayer rule L5469-5491.
+- [ ] Quoted note at L5462-5467 and the sublayer rule L5469-5491.
 - [ ] Hand-compute the three offsets above.
 - [ ] Run `08-12-lean-demo/run.py` (`R.usda`, `A.usda`, `B.usda`); confirm line `11`.
 - [ ] Duplicates: `gh search issues --repo aousd/specifications-public "timeCodesPerSecond offset"`.
