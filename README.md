@@ -1,5 +1,7 @@
 # usdspec-conformance
 
+[![GitHub Sponsors](https://img.shields.io/badge/Sponsor-%E2%9D%A4-pink?logo=github)](https://github.com/sponsors/lighttransport)
+
 LEAN 4 model of the AOUSD USD Core Specification (v1.1), plus differential
 conformance tests that replay Lean-generated vectors against stock OpenUSD and
 LightUSD. It records where the specification is ambiguous, self-contradictory
