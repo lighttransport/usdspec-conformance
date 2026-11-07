@@ -214,11 +214,12 @@ foreach(name pcp_json_contract primindex_vectors layerstack_vectors raw_metadata
   endif()
 endforeach()
 
-# Local specification audit data is prepared, not distributed.
+# Local-only transformed grammar is prepared even for filtered CTest selections.
 conf_test(lean_grammar_generate ${Python3_EXECUTABLE} ${SRC}/scripts/extract-usda-peg.py --lean)
 set_tests_properties(lean_grammar_generate PROPERTIES LABELS "lean;source-prep" FIXTURES_SETUP local_grammar)
-get_property(history_tests DIRECTORY PROPERTY TESTS)
-foreach(name IN LISTS history_tests)
+conf_test(license_notices ${Python3_EXECUTABLE} ${SRC}/scripts/check-license-notices.py)
+get_property(verification_tests DIRECTORY PROPERTY TESTS)
+foreach(name IN LISTS verification_tests)
   if(NOT name STREQUAL "lean_grammar_generate")
     set_property(TEST ${name} APPEND PROPERTY FIXTURES_REQUIRED local_grammar)
   endif()

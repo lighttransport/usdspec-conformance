@@ -62,8 +62,8 @@ and the inherits variant (L5366-5373) lists `root.usda /Class_1` and `root.usda 
 
 ### What OpenUSD does
 
-Stock OpenUSD 26.11 (official `usd-core==26.11` wheel), `13-21-lean-demo/run.py` with the example's
-files (`ex6_root.usda`, `ex6_ref.usda`, the missing `)` added):
+Stock OpenUSD 26.11 (official `usd-core==26.11` wheel), historical `13-21-lean-demo/run.py` output
+from a local repaired-example run (the missing `)` was added locally):
 
 ```
 20 GetPrimStack: [('ex6_root.usda', '/Root'), ('ex6_ref.usda', '/Ref'), ('ex6_ref.usda', '/Class_1'), ('ex6_ref.usda', '/Class_2')]
@@ -72,6 +72,13 @@ files (`ex6_root.usda`, `ex6_ref.usda`, the missing `)` added):
 ...
 20 inherits variant GetPrimStack: [('ex6i_root.usda', '/Root'), ('ex6i_ref.usda', '/Ref'), ('ex6i_ref.usda', '/Class_1'), ('ex6i_ref.usda', '/Class_2')]
 ```
+
+The output above is retained historical evidence, not a shipped repaired copy
+of the example. The current script constructs an independently authored control
+through the Sdf API: `/Instance` references `/LibraryModel`, whose class chain
+is `/Trait` then `/Seed`. Both inherit and specialize variants assert the four
+authored opinions and absence of root class specs. This checks the same structural
+distinction without distributing a repaired specification layer.
 
 The prim stack (the opinions) has four entries in both variants; the `root.usda` class nodes
 exist in the index with no specs.

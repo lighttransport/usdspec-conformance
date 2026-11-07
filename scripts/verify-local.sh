@@ -5,6 +5,8 @@ root="$(cd "$(dirname "$0")/.." && pwd)"
 lightusd="${LIGHTUSD_ROOT:-$HOME/work/tinyusdz/large-scene}"
 jobs="${JOBS:-4}"
 mkdir -p "$root/build"
+python3 "$root/scripts/check-license-notices.py"
+python3 "$root/scripts/extract-usda-peg.py" --lean
 exec > >(tee "$root/build/verification.log") 2>&1
 if [[ -L "$root/verif/lean/.lake" ]]; then
   cp -a --reflink=auto "$root/verif/lean/.lake/" "$root/build/lean-cache-copy"

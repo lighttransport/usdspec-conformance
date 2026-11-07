@@ -16,7 +16,7 @@ Independent project; not affiliated with or endorsed by AOUSD or Pixar.
 | `tests/next/` | Differential tests (LightUSD `lusdcat` vs stock OpenUSD), AOUSD supplemental runner, allowlists, generated vectors in `generated/lean/` |
 | `scripts/` | Registry/citation/model-split gates, Unicode data tooling, oracle setup |
 | `aousd/core/1.1.0/` | Vendored spec (byte-identical, own `LICENSE`, `PROVENANCE.md`, `SHA256SUMS`) |
-| `issues/` | Issue drafts and reviews (`aousd/`, `OpenUSD/`). **Local drafts; nothing here has been filed upstream.** |
+| `issues/` | Issue drafts and reviews (`aousd/`, `OpenUSD/`). **Local drafts and historical filing/review records.** |
 | `doc/validation/` | Execution ledger `lean-followup-status.md` and audit notes |
 
 ## Quick start
@@ -92,3 +92,13 @@ The combined execution log is `build/verification.log`; JUnit output is
 `build/stock-provenance.json` and `build/local-provenance.json`. `ctest --test-dir build -L lean` includes Unicode and
 negative axiom controls. Native vector replay, both combine-chain consumers,
 and the other supplemental categories are also registered when available.
+
+## Licensing
+
+Original project code is Apache-2.0. Third-party material has separate terms:
+see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). The vendored AOUSD text
+remains unmodified under CC BY-ND 4.0; attributed quotations retain that license.
+The transformed grammar is generated locally for auditing and excluded from the
+distributed source. CTest prepares it automatically. Before running Lake directly,
+run `python3 scripts/extract-usda-peg.py --lean` from this repository's root.
+Do not publish the local transformed grammar or compiled audit modules containing it.

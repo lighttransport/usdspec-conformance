@@ -4,4 +4,6 @@
 build/
 __pycache__/
 *.pyc
+
+# Transformed AOUSD grammar is generated for local verification, not distributed.
 /verif/lean/UsdSpec/Usda/GeneratedRules.lean
