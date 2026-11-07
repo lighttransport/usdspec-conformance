@@ -8,13 +8,10 @@ from pathlib import Path
 import subprocess
 import tempfile
 
-ORACLE = r'''
+ORACLE = Path(__file__).with_name('oracle_runtime.py').read_text() + "\noracle_provenance()\n" + r'''
 import importlib.metadata, json, pathlib, sys, tempfile
 import pxr
 from pxr import Sdf
-package = importlib.metadata.distribution('usd-core')
-assert package.version == '26.11', package.version
-assert pathlib.Path(pxr.__file__).resolve() == pathlib.Path(package.locate_file('pxr/__init__.py')).resolve()
 checks = losses = 0
 with tempfile.TemporaryDirectory(prefix='lightusd-stock-strings-') as directory:
     for case in json.load(sys.stdin):
@@ -36,7 +33,7 @@ with tempfile.TemporaryDirectory(prefix='lightusd-stock-strings-') as directory:
         else:
             assert actual == expected, case['id']
 assert checks == 118 and losses == 2, (checks, losses)
-print('Stock 26.11: 40 cases retained, 118 source/native-text/native-crate value checks, 38 stock crate roundtrips, 2 classified stock NUL truncations; native rejects both unrepresentable crate values')
+print('OpenUSD 26.11: 40 cases retained, 118 source/native-text/native-crate value checks, 38 stock crate roundtrips, 2 classified stock NUL truncations; native rejects both unrepresentable crate values')
 '''
 
 
@@ -77,8 +74,10 @@ def main():
                           'native_text': text, 'binary_text': binary_text})
         env = dict(os.environ)
         env['PYTHONPATH'] = str(Path(args.oracle_pythonpath).resolve())
-        env.pop('LD_LIBRARY_PATH', None)
-        env.pop('PXR_PLUGINPATH_NAME', None)
+        if os.environ.get('USDSPEC_ORACLE_MODE', 'stock') != 'local':
+            env.pop('LD_LIBRARY_PATH', None)
+        if os.environ.get('USDSPEC_ORACLE_MODE', 'stock') != 'local':
+            env.pop('PXR_PLUGINPATH_NAME', None)
         result = subprocess.run([args.oracle_python, '-c', ORACLE], input=json.dumps(cases),
             capture_output=True, text=True, env=env, timeout=120)
         if result.returncode:

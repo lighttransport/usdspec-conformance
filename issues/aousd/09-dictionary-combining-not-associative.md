@@ -25,7 +25,9 @@ With `a = {x: {}}`, `b = {x: 1}`, `c = {x: {y: 2}}` (strongest first):
 Associativity is guaranteed when all operands agree on whether each shared key
 holds a dictionary or a leaf (`merge_assoc_of_compat`). Key *sequences* always
 associate. Because value resolution (L6200-6206) folds the opinion stack
-without fixing the association, two conforming implementations can differ.
+without fixing the association. Implementations that choose different folds
+can therefore disagree; because the associativity claim is false, this is not
+a claim that both satisfy every sentence of the specification.
 
 ### What OpenUSD does
 

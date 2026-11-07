@@ -1,28 +1,18 @@
 #!/usr/bin/env python3
-"""Lossless PCP provenance from the pinned stock OpenUSD wheel.
+"""Lossless PCP provenance from a pinned stock wheel or explicit local checkout.
 
 Run with the interpreter/environment containing usd-core==26.11. This uses
 Pcp in USD mode, like the supplemental corpus driver, and does not modify assets.
 """
 import argparse
-import importlib.metadata
 import json
 import os
 from pathlib import Path
 import sys
 
 
-def oracle_provenance(expected):
-    import pxr
-    from pxr import Usd
-    distribution = importlib.metadata.distribution('usd-core')
-    if distribution.version != expected:
-        raise RuntimeError(f'expected usd-core=={expected}, got {distribution.version}')
-    package_file = Path(distribution.locate_file('pxr/__init__.py')).resolve()
-    if Path(pxr.__file__).resolve() != package_file:
-        raise RuntimeError('pxr module does not belong to the pinned usd-core distribution')
-    return {'package': 'usd-core', 'version': distribution.version,
-            'usdVersion': list(Usd.GetVersion())}
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from oracle_runtime import oracle_provenance
 
 
 def dump(filename, provenance, fallbacks, load_payloads=True):

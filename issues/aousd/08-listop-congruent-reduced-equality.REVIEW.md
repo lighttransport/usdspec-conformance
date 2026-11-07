@@ -27,3 +27,6 @@ cover different defects; local 15–17 and 20 cross-reference their shared conte
 Edits applied: Distinguished sampled runtime checks from the universal Lean proof.
 Required edits: none for these checked claims. A human decides whether to file;
 no report has been filed by this review.
+
+Follow-up recheck (2026-11-07): Added the infinite-domain hypothesis of the general list-op characterization; the concrete Nat counterexample remains unconditional.
+See [the consolidated recheck](REVIEW-2026-11-07.md) for scope and evidence.

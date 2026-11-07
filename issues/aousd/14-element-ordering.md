@@ -75,8 +75,11 @@ letter.
 
 ### Request
 
-1. Fix the example to OpenUSD's order (move `foo_bar`, `Foobar`, `foobar` after
-   `foo0001bar0002xyz`).
+1. Choose one coherent ordering and regenerate the example from it. If adopting
+   OpenUSD's ordering, move `foo_bar`, `Foobar`, `foobar` after
+   `foo0001bar0002xyz` and also adopt the underscore clarification in item 3.
+   If retaining underscore-before-digits, the corrected example must retain
+   `foo_bar` before the `foo0…` names.
 2. State that the leading-zero rule is a final tie-break, applied only when the strings are
    otherwise equal (same as the case tie-break).
 3. Either restrict L3520 to "before all ASCII letters" and add "numbers before `_`" (OpenUSD),

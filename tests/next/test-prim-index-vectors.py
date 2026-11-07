@@ -96,8 +96,10 @@ def main():
             env = os.environ.copy()
             if args.oracle_pythonpath:
                 env['PYTHONPATH'] = str(Path(args.oracle_pythonpath).resolve())
-                env.pop('LD_LIBRARY_PATH', None)
-                env.pop('PXR_PLUGINPATH_NAME', None)
+                if os.environ.get('USDSPEC_ORACLE_MODE', 'stock') != 'local':
+                    env.pop('LD_LIBRARY_PATH', None)
+                if os.environ.get('USDSPEC_ORACLE_MODE', 'stock') != 'local':
+                    env.pop('PXR_PLUGINPATH_NAME', None)
             request_file = base / 'requests.json'
             request_file.write_text(json.dumps(requests))
             result = subprocess.run([args.oracle_python, '-c', ORACLE,
@@ -146,7 +148,7 @@ def main():
                 mech_check(case, truth['parent'], 'stock')
     print(f'Lean prim-index mechanisms: {len(mechanisms)} implied-class/relocate/payload/variant-selection cases pass')
     print(f'Lean prim-index: {len(cases)} layered arc-edit/load cases and 512 prim/property queries pass native' +
-          (' and pinned stock OpenUSD' if args.oracle_python else ''))
+          (' and selected OpenUSD oracle' if args.oracle_python else ''))
 
 
 if __name__ == '__main__':

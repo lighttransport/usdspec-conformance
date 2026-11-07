@@ -1,6 +1,10 @@
 # Issue drafts: independent review procedure
 
-Drafts for upstream reports. **Nothing here has been filed.** Each draft was
+Local drafts, reproductions, and historical review/filing records. The
+2026-11-04 review records AOUSD 01–04 as already filed; the Lean reports
+08–21 remain local drafts in this checkout. Live upstream status must be
+checked before filing. No review or edit here authorizes an upstream post.
+Each draft was
 written by one agent. Before anyone files it, a *second* agent or person
 checks it from scratch using this procedure.
 
@@ -16,8 +20,8 @@ checks it from scratch using this procedure.
    version numbers and "OpenUSD does X". Re-derive each one yourself.
 2. **Use primary sources only:**
    - The spec: the vendored, byte-verified copies at
-     `aousd/core/1.1.0/core_spec.md` and `aousd/core/1.0.1/core_spec.md` in
-     the LightUSD repo. Check them with `sha256sum -c SHA256SUMS`.
+     `aousd/core/1.1.0/core_spec.md` in this repository. Historical 1.0.1
+     comparisons require the separately identified LightUSD copy. Check them with `sha256sum -c SHA256SUMS`.
    - OpenUSD: the source tree at the stated tag (`git -C <OpenUSD> show v26.11.1:<path>`).
    - Behaviour: running the repro yourself.
 3. **Use a stock OpenUSD.** The local fork carries extra patches, so prefer a
@@ -31,15 +35,23 @@ checks it from scratch using this procedure.
    it ask for one clear thing? Remove speculation that is presented as fact.
 6. **Don't file anything.** Output a verdict per item. Filing is a human decision.
 
-## Environment (this host)
+## Reproduce the Lean findings
+
+From this repository's root, use the official wheel prepared by
+`scripts/setup-oracle.sh` (or the full `scripts/verify-local.sh` setup):
 
 ```bash
-U=/mnt/nvme02/work/OpenUSD/dist-v26.11          # fork install (patched; see rule 3)
-export LD_LIBRARY_PATH=$U/lib:$U/../deps/inst/lib
-export PYTHONPATH=$U/lib/python3.11/site-packages
-PY=/mnt/nvme02/work/OpenUSD/.venv/bin/python3    # Python that matches that install
-USDCAT=$U/bin/usdcat                             # its shebang is the .venv python
+env -u LD_LIBRARY_PATH -u PXR_PLUGINPATH_NAME \
+  PYTHONPATH="$PWD/build/stock-openusd-oracle/site-packages" \
+  python3.11 issues/aousd/08-12-lean-demo/run.py
+env -u LD_LIBRARY_PATH -u PXR_PLUGINPATH_NAME \
+  PYTHONPATH="$PWD/build/stock-openusd-oracle/site-packages" \
+  python3.11 issues/aousd/13-21-lean-demo/run.py
 ```
+
+The scripts locate their fixtures relative to their own file. Check the wheel's
+ownership and version with `scripts/oracle-provenance.py` in the same isolated
+environment. Do not substitute a patched local OpenUSD for stock evidence.
 
 The AOUSD supplemental corpus is at
 `~/.cache/lightusd/core-spec-supplemental-release_dec2025/releases/1.0.1`

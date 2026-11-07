@@ -7,7 +7,7 @@ Specification: byte-verified core/1.1.0/core_spec.md at published commit
 83e25aceb11a9340db4778263bda5d5175875f49. Vendored text was not modified.
 
 Claims checked:
-  - [OK] The normative recursive affine composition gives offset 12.5; neither interpretation of the note gives this offset.
+  - [OK] The normative recursive affine composition gives offset 12.5; neither composition order of the authored-only accumulated map with the root/leaf ratio gives this offset. The note leaves the meaning of accumulated offset unspecified; this is a clarification request, not a refutation of every possible interpretation.
   - [OK] Stock runtime places the leaf sample at stage time 12.5.
 
 Runtime evidence: [review output](REVIEW-2026-11-06/stock-08-12.txt).
@@ -27,3 +27,6 @@ cover different defects; local 15–17 and 20 cross-reference their shared conte
 Edits applied: Added stock-oracle provenance and a frozen published specification link.
 Required edits: none for these checked claims. A human decides whether to file;
 no report has been filed by this review.
+
+Follow-up recheck (2026-11-07): Reframed the undefined accumulated-offset interpretation as a clarification, and wrote both affine composition orders explicitly.
+See [the consolidated recheck](REVIEW-2026-11-07.md) for scope and evidence.

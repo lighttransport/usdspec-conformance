@@ -8,13 +8,10 @@ from pathlib import Path
 import subprocess
 import tempfile
 
-ORACLE = r'''
+ORACLE = Path(__file__).with_name('oracle_runtime.py').read_text() + "\noracle_provenance()\n" + r'''
 import importlib.metadata, json, pathlib, sys, tempfile
 import pxr
 from pxr import Sdf
-package = importlib.metadata.distribution('usd-core')
-assert package.version == '26.11', package.version
-assert pathlib.Path(pxr.__file__).resolve() == pathlib.Path(package.locate_file('pxr/__init__.py')).resolve()
 def expected(key, kind):
     return {key: 7 if kind == 0 else 'payload' if kind == 1 else {key: 'payload'}}
 checks = losses = exact = 0
@@ -40,7 +37,7 @@ with tempfile.TemporaryDirectory(prefix='lightusd-stock-keys-') as directory:
             assert actual == expected(key, kind), (case['id'], actual)
             exact += 1
 assert checks == 399 and exact == 129 and losses == 6, (checks, exact, losses)
-print('Stock 26.11: 135 dictionary-key cases retained; 399 source/native-text/native-crate checks; 129 exact stock crate roundtrips; 6 classified stock NUL-key truncations, rejected by native crate writer')
+print('OpenUSD 26.11: 135 dictionary-key cases retained; 399 source/native-text/native-crate checks; 129 exact stock crate roundtrips; 6 classified stock NUL-key truncations, rejected by native crate writer')
 '''
 
 
@@ -81,8 +78,10 @@ def main():
                           'native_text': text, 'binary_text': binary_text})
         env = dict(os.environ)
         env['PYTHONPATH'] = str(Path(args.oracle_pythonpath).resolve())
-        env.pop('LD_LIBRARY_PATH', None)
-        env.pop('PXR_PLUGINPATH_NAME', None)
+        if os.environ.get('USDSPEC_ORACLE_MODE', 'stock') != 'local':
+            env.pop('LD_LIBRARY_PATH', None)
+        if os.environ.get('USDSPEC_ORACLE_MODE', 'stock') != 'local':
+            env.pop('PXR_PLUGINPATH_NAME', None)
         result = subprocess.run([args.oracle_python, '-c', ORACLE], input=json.dumps(cases),
             capture_output=True, text=True, env=env, timeout=120)
         if result.returncode:

@@ -7,13 +7,10 @@ from pathlib import Path
 import subprocess
 import tempfile
 
-ORACLE = r'''
+ORACLE = Path(__file__).with_name('oracle_runtime.py').read_text() + "\noracle_provenance()\n" + r'''
 import importlib.metadata, json, pathlib, sys
 import pxr
 from pxr import Sdf
-package = importlib.metadata.distribution('usd-core')
-assert package.version == '26.11', package.version
-assert pathlib.Path(pxr.__file__).resolve() == pathlib.Path(package.locate_file('pxr/__init__.py')).resolve()
 data = json.load(sys.stdin)
 for case in data['cases']:
     layer = Sdf.Layer.FindOrOpen(str(pathlib.Path(data['directory']) / case['file']))
@@ -35,7 +32,7 @@ for case in data['cases']:
                 'effective': list(op.ApplyOperations([]))}
     for name, value in expected.items():
         assert case[name] == value, (case['file'], name, case[name], value)
-print('Stock 26.11 list-op modes: %d real crate fields passed' % len(data['cases']))
+print('OpenUSD 26.11 list-op modes: %d real crate fields passed' % len(data['cases']))
 '''
 
 
@@ -61,8 +58,10 @@ def main():
         assert {case['header'] for case in cases if 'header' in case} == set(range(128))
         env = dict(os.environ)
         env['PYTHONPATH'] = str(Path(args.oracle_pythonpath).resolve())
-        env.pop('LD_LIBRARY_PATH', None)
-        env.pop('PXR_PLUGINPATH_NAME', None)
+        if os.environ.get('USDSPEC_ORACLE_MODE', 'stock') != 'local':
+            env.pop('LD_LIBRARY_PATH', None)
+        if os.environ.get('USDSPEC_ORACLE_MODE', 'stock') != 'local':
+            env.pop('PXR_PLUGINPATH_NAME', None)
         oracle = subprocess.run([args.oracle_python, '-c', ORACLE], text=True,
             input=json.dumps({'directory': directory, 'cases': cases}), env=env,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False, timeout=120)

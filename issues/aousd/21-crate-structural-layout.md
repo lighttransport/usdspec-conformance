@@ -39,7 +39,7 @@ from the local OpenUSD fork. Source references use the clean `v26.11.1` tag.
 4. **Jump 0 (LEAN-413).** OpenUSD writes `0` for "sibling only, which is the next row",
    i.e. X+1. The literal algorithm recurses at X+0 and never terminates
    (`specAlg_diverges_on_pxr`). `>0` means *both* a child (the next row) and a sibling at
-   X+jump; the table describes it as sibling only.
+   X+jump; the table mentions the sibling offset but omits the simultaneous child.
 5. **Secondary (LEAN-411, wording).** The version table (L11744) says 0.4.0 "Compressed the
    Table of Contents Sections", but the TOC itself is never compressed (L11769-11782);
    OpenUSD's history says "0.4.0: Compressed structural sections."

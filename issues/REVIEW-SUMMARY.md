@@ -23,3 +23,12 @@ Reviewer artifacts: `aousd/REVIEW-demo/05-add-vs-append/`. External stock-oracle
 | aousd/06 auto-applies direction | Draft, not reviewed. The definition text (applied *to*, = OpenUSD `apiSchemaAutoApplyTo`) contradicts the worked examples and `build_prim_definition` (pulls in). Demo: `aousd/06-07-schema-demo/`. |
 | aousd/07 prim-definition field merge | Draft, not reviewed. `compose_prim_definition` merges only `default`/`hidden`; the prose and OpenUSD merge every field (except custom/documentation). Same demo. |
 | OpenUSD/03 includeRoot fallback | Draft, not reviewed. Filed against OpenUSD, not AOUSD, because the spec agrees with OpenUSD's own docs (fallback `false`) and only OpenUSD's schema lacks the default. Replaces the planned aousd/08. |
+
+## Lean findings rechecked (2026-11-07)
+
+Reports AOUSD 08–21 were rechecked against the hash-verified Core 1.1.0 text,
+the cited Lean statements, stock OpenUSD 26.11 runtime probes, and targeted
+v26.11.1 source. Counterexamples reproduce. Corrections narrow proof/domain
+claims, repair bit indexing and grammar explanations, and scope report 11 to
+its interpretation of accumulated offsets. No reports were filed.
+See [the per-report verdicts and corrections](aousd/REVIEW-2026-11-07.md).

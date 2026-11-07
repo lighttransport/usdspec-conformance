@@ -70,8 +70,10 @@ class CliTests(unittest.TestCase):
         env = os.environ.copy()
         if ARGS.oracle_pythonpath:
             env['PYTHONPATH'] = str(Path(ARGS.oracle_pythonpath).resolve())
-            env.pop('LD_LIBRARY_PATH', None)
-            env.pop('PXR_PLUGINPATH_NAME', None)
+            if os.environ.get('USDSPEC_ORACLE_MODE', 'stock') != 'local':
+                env.pop('LD_LIBRARY_PATH', None)
+            if os.environ.get('USDSPEC_ORACLE_MODE', 'stock') != 'local':
+                env.pop('PXR_PLUGINPATH_NAME', None)
         result = subprocess.run([ARGS.oracle_python,
             str(HERE / 'dump-pcp-oracle.py'), str(root)],
             capture_output=True, text=True, env=env)
@@ -86,8 +88,10 @@ class CliTests(unittest.TestCase):
         env = os.environ.copy()
         if ARGS.oracle_pythonpath:
             env['PYTHONPATH'] = str(Path(ARGS.oracle_pythonpath).resolve())
-            env.pop('LD_LIBRARY_PATH', None)
-            env.pop('PXR_PLUGINPATH_NAME', None)
+            if os.environ.get('USDSPEC_ORACLE_MODE', 'stock') != 'local':
+                env.pop('LD_LIBRARY_PATH', None)
+            if os.environ.get('USDSPEC_ORACLE_MODE', 'stock') != 'local':
+                env.pop('PXR_PLUGINPATH_NAME', None)
         result = subprocess.run([ARGS.oracle_python, str(HERE / 'dump-pcp-oracle.py'), str(root)],
                                 capture_output=True, text=True, env=env)
         self.assertEqual(result.returncode, 3, result.stderr)
@@ -151,8 +155,10 @@ def "P" (inherits = </Class>) {
                 env = os.environ.copy()
                 if ARGS.oracle_pythonpath:
                     env['PYTHONPATH'] = str(Path(ARGS.oracle_pythonpath).resolve())
-                    env.pop('LD_LIBRARY_PATH', None)
-                    env.pop('PXR_PLUGINPATH_NAME', None)
+                    if os.environ.get('USDSPEC_ORACLE_MODE', 'stock') != 'local':
+                        env.pop('LD_LIBRARY_PATH', None)
+                    if os.environ.get('USDSPEC_ORACLE_MODE', 'stock') != 'local':
+                        env.pop('PXR_PLUGINPATH_NAME', None)
                 command = [ARGS.oracle_python, str(HERE / 'dump-pcp-oracle.py'), str(root)]
                 oracle = subprocess.run(command, capture_output=True, text=True, env=env)
                 self.assertEqual(oracle.returncode, 0, oracle.stderr)
@@ -420,8 +426,10 @@ def "R" (references = </Model>; variants = {string look = "empty"}) {}
                 env = os.environ.copy()
                 if ARGS.oracle_pythonpath:
                     env['PYTHONPATH'] = str(Path(ARGS.oracle_pythonpath).resolve())
-                    env.pop('LD_LIBRARY_PATH', None)
-                    env.pop('PXR_PLUGINPATH_NAME', None)
+                    if os.environ.get('USDSPEC_ORACLE_MODE', 'stock') != 'local':
+                        env.pop('LD_LIBRARY_PATH', None)
+                    if os.environ.get('USDSPEC_ORACLE_MODE', 'stock') != 'local':
+                        env.pop('PXR_PLUGINPATH_NAME', None)
                 result = subprocess.run([ARGS.oracle_python,
                     str(HERE / 'dump-pcp-oracle.py'), str(root)],
                     capture_output=True, text=True, env=env)
@@ -539,8 +547,10 @@ def "R" (references = </Model>; variants = {string look = "empty"}) {}
                         env = os.environ.copy()
                         if ARGS.oracle_pythonpath:
                             env['PYTHONPATH'] = str(Path(ARGS.oracle_pythonpath).resolve())
-                            env.pop('LD_LIBRARY_PATH', None)
-                            env.pop('PXR_PLUGINPATH_NAME', None)
+                            if os.environ.get('USDSPEC_ORACLE_MODE', 'stock') != 'local':
+                                env.pop('LD_LIBRARY_PATH', None)
+                            if os.environ.get('USDSPEC_ORACLE_MODE', 'stock') != 'local':
+                                env.pop('PXR_PLUGINPATH_NAME', None)
                         result = subprocess.run([ARGS.oracle_python,
                             str(HERE / 'dump-pcp-oracle.py'), str(root)],
                             capture_output=True, text=True, env=env)
@@ -960,11 +970,13 @@ def "Model" (references = @rig.usd@</Rig>) {
                 env = os.environ.copy()
                 if ARGS.oracle_pythonpath:
                     env['PYTHONPATH'] = str(Path(ARGS.oracle_pythonpath).resolve())
-                    env.pop('LD_LIBRARY_PATH', None)
-                    env.pop('PXR_PLUGINPATH_NAME', None)
+                    if os.environ.get('USDSPEC_ORACLE_MODE', 'stock') != 'local':
+                        env.pop('LD_LIBRARY_PATH', None)
+                    if os.environ.get('USDSPEC_ORACLE_MODE', 'stock') != 'local':
+                        env.pop('PXR_PLUGINPATH_NAME', None)
                 probe = subprocess.run([ARGS.oracle_python, '-c',
                     'import importlib.metadata, sys; '
-                    'assert importlib.metadata.version("usd-core") == "26.11"; '
+                    'import os; assert os.environ.get("USDSPEC_ORACLE_MODE") == "local" or importlib.metadata.version("usd-core") == "26.11"; '
                     'from pxr import Sdf; '
                     'layer = Sdf.Layer.FindOrOpen(sys.argv[1]); '
                     'assert layer is not None; '
@@ -988,7 +1000,7 @@ def "Model" (references = @rig.usd@</Rig>) {
                     '--pcp-json-version', '2', str(root)], capture_output=True, text=True)
                 self.assertEqual(result.returncode, 0, result.stderr)
                 document = json.loads(result.stdout)
-                # Stock 26.11 no longer accepts this legacy USDA field.
+                # OpenUSD 26.11 no longer accepts this legacy USDA field.
                 # Preserve the native extension and test its layer priority.
                 self.assert_stock_rejects(root)
                 self.assertEqual(document['Composing']['/P']['Child names'], expected)

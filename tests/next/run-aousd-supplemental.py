@@ -250,8 +250,10 @@ def main():
     oracle_env = os.environ.copy()
     if args.pcp_oracle_pythonpath:
         oracle_env['PYTHONPATH'] = str(pathlib.Path(args.pcp_oracle_pythonpath).resolve())
-        oracle_env.pop('LD_LIBRARY_PATH', None)
-        oracle_env.pop('PXR_PLUGINPATH_NAME', None)
+        if os.environ.get('USDSPEC_ORACLE_MODE', 'stock') != 'local':
+            oracle_env.pop('LD_LIBRARY_PATH', None)
+        if os.environ.get('USDSPEC_ORACLE_MODE', 'stock') != 'local':
+            oracle_env.pop('PXR_PLUGINPATH_NAME', None)
     failures = []
     counts = {}
     pcp_compared = 0
@@ -341,6 +343,9 @@ def main():
                     '--dump-pcp-json', '-', '--pcp-json-version', '2', str(entry)]
                 lossless = subprocess.run(lossless_command, capture_output=True, text=True)
                 if oracle.returncode or lossless.returncode:
+                    failures.append(('oracle_infrastructure', entry,
+                        f'oracle exit {oracle.returncode}, native exit {lossless.returncode}: ' +
+                        oracle.stderr + lossless.stderr))
                     oracle_results[case_dir.name] = [('<root>', '<oracle>',
                         f'oracle exit {oracle.returncode}, next exit {lossless.returncode}: ' +
                         (oracle.stderr or oracle.stdout or lossless.stderr)[-800:])]
@@ -348,12 +353,15 @@ def main():
                     try:
                         truth = json.loads(oracle.stdout)
                         actual_v2 = json.loads(lossless.stdout)
-                        if truth.get('schemaVersion') != 2 or actual_v2.get('schemaVersion') != 2:
+                        if not isinstance(truth, dict) or not isinstance(actual_v2, dict) or truth.get('schemaVersion') != 2 or actual_v2.get('schemaVersion') != 2:
                             raise ValueError('lossless comparison requires schemaVersion 2')
+                        if truth.get('status') != 'ok' or actual_v2.get('status', 'ok') != 'ok':
+                            raise ValueError('lossless comparison requires successful oracle and native documents')
                         differences = diff_pcp(truth, actual_v2, strict_order=True)
                         if differences:
                             oracle_results[case_dir.name] = differences
                     except (ValueError, TypeError) as error:
+                        failures.append(('oracle_infrastructure', entry, str(error)))
                         oracle_results[case_dir.name] = [('<root>', '<oracle>', str(error))]
             if args.compare_pcp:
                 compare_command = [args.next_usdcat, "--instance-mode", "native",

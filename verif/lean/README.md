@@ -41,7 +41,7 @@ NFC idempotence proof is still open. USD paths remain unnormalized.
 The trust audit is `lake env lean Audit/Axioms.lean`. It inspects transitive
 dependencies of every compiled project theorem, including private helpers, and
 permits only `propext`, `Classical.choice`, and `Quot.sound`. The full audit passes
-for 3,228 theorems (499 private) across 43 modules. The crate proofs use algebraic
+for 3,302 theorems (512 private) across 44 modules. The crate proofs use algebraic
 integer reasoning and per-bit equality in `UsdSpec/Core/BvKernel.lean`; their
 statements retain universally quantified inputs. `scripts/test-lean-axioms.py`
 checks that the audit accepts kernel proofs and rejects explicit axioms, `sorry`,

@@ -28,3 +28,6 @@ cover different defects; local 15–17 and 20 cross-reference their shared conte
 Edits applied: Framed the domain as a partial bijection and corrected the shadowed path in the existing table to /B.
 Required edits: none for these checked claims. A human decides whether to file;
 no report has been filed by this review.
+
+Follow-up recheck (2026-11-07): Removed the stale candidate label for confirmed secondary registry entries.
+See [the consolidated recheck](REVIEW-2026-11-07.md) for scope and evidence.

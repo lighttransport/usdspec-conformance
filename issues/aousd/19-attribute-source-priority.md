@@ -42,8 +42,9 @@ following alternative readings when taken without that qualification:
 
 For the simplified model of eligible, unblocked opinions, C equals clip anchoring
 (`perSpec_eq_anchored`). The probes below cover defaults, samples, and clips;
-they do not establish all block, empty-sample, or spline-extrapolation behavior. On the five stacks below A and B give
-different results, and only C matches OpenUSD (`readings_disagree`).
+they do not establish all block, empty-sample, or spline-extrapolation behavior. The theorem `readings_disagree` covers the four distinguishing stacks
+`w`, `x`, `y`, and `z`: only C matches their OpenUSD results. The fifth probe,
+`v`, is a same-spec precedence control, not an additional case in that theorem.
 
 ### What OpenUSD does
 
@@ -76,10 +77,12 @@ The python in L6364-6442 cannot be run as written:
 - It takes one `spec`, not the composed opinion stack, and ignores `spline`, `clips`
   and value blocks, contrary to L6326-6336.
 - `_interpolate` (L6373-6374) indexes `timeSamples[0]` and fails on an empty
-  `timeSamples` dictionary, which is authorable; it linearly interpolates any type when
+  authored `timeSamples` container (represented here as a list of pairs); it linearly interpolates any type when
   not `Held` (e.g. strings, tokens, bools).
 - `_process_default` (L6485) tests the field with truthiness, while
-  `_process_time_samples` (L6405) uses `is not None`.
+  `_process_time_samples` (L6405) uses `is not None`. Whether this loses a
+  zero/false default depends on the field wrapper's truth-value semantics;
+  that failure is not established by the supplied probes.
 
 ### Request
 

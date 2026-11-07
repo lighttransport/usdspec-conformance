@@ -27,3 +27,6 @@ cover different defects; local 15–17 and 20 cross-reference their shared conte
 Edits applied: Changed the associativity condition from necessary to sufficient.
 Required edits: none for these checked claims. A human decides whether to file;
 no report has been filed by this review.
+
+Follow-up recheck (2026-11-07): Removed the claim that different folds can both satisfy every contradictory normative sentence.
+See [the consolidated recheck](REVIEW-2026-11-07.md) for scope and evidence.

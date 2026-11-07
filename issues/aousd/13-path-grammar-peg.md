@@ -47,8 +47,12 @@ selector, nor between a variant selector and a prim spec"; L3338 gives
    alternative cannot fail once `PrimName` matched (its repetitions and option may match
    zero times), so the second alternative is never tried. `/a{v=x}b/c`, and the spec's own
    `/World/Foo/Baz{VariantSet1=VarFoobar}Foobar.foobarprop1` (L3452) — where the first
-   alternative stops before `{` and `Path` has no rule that can continue — are rejected.
-   Even read as a CFG, neither alternative mixes `/` and `{..}` in one path.
+   alternative consumes the variant selection but stops before the following prim name,
+   and `Path` has no rule that can continue — are rejected.
+   Even read as a CFG, neither alternative permits both slash-separated child
+   steps and variant-followed child steps in one sequence. A slash-separated
+   prefix followed by a terminal variant selection, such as `/a/b{v=x}`,
+   is allowed; that is not the failing case.
 2. **Property count is asymmetric (LEAN-203).** `PathElements` allows `(PropElements)*`,
    so the relative `a.b.c` is accepted, while `PrimFirstPathElements` allows one property
    and rejects `/a.b.c`. L3424 says properties are terminal.

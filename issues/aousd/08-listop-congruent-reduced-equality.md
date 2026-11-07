@@ -30,9 +30,12 @@ deleted sequences as *ordered* sequences.
 congruent (every combination with any `C` iterates identically: deletion only
 tests membership), but `reduced(A) = A ≠ B = reduced(B)`.
 
-Machine-checked in Lean 4: the second implication is false; what holds is that
-congruent composable ops have equal reduced `prepended` and `appended`
-sequences and equal deleted *sets*.
+Machine-checked in Lean 4: the second implication is false. For an infinite
+element domain, the characterization proves equal reduced `prepended` and
+`appended` sequences and equal deleted *sets* for congruent composable ops.
+The `[Infinite α]` hypothesis of `reduce_congruent_of_congruent'` is essential
+to the stated general characterization; the concrete `Nat` counterexample
+itself is unconditional.
 
 ### What OpenUSD does
 

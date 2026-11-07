@@ -5,7 +5,11 @@ Run with a stock OpenUSD python, e.g.
   PYTHONPATH=<OpenUSD>/lib/python python3 run.py
 from this directory.
 """
+import os
+from pathlib import Path
 from pxr import Sdf, Usd
+
+os.chdir(Path(__file__).resolve().parent)
 
 print("pxr", Usd.GetVersion())
 

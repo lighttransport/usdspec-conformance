@@ -31,7 +31,7 @@ ctest --test-dir build -R 'spec_citations|model_split|issue_tags'
 scripts/setup-oracle.sh                # installs usd-core==26.11 under build/
 cmake -S . -B build \
   -DLIGHTUSD_ROOT=/path/to/lightusd \
-  -DLIGHTUSD_BUILD_DIR=/path/to/lightusd/build \   # holds lusdcat, lusdchecker, test_name_order, test_int64_listop
+  -DLIGHTUSD_BUILD_DIR=/path/to/lightusd/build \
   -DORACLE_PYTHON=python3.11 \
   -DORACLE_PYTHONPATH=$PWD/build/stock-openusd-oracle/site-packages \
   -DAOUSD_SUPPLEMENTAL_ROOT=/path/to/core-spec-supplemental/releases/1.0.1
@@ -66,3 +66,29 @@ LightUSD (`src/next/`) is the implementation under test. The Lean generators her
 are the source of truth for `tests/next/generated/lean/*.inc`; LightUSD's own C++
 consumers (`test_lean_vectors` etc.) read a copy of those files, which must be
 refreshed from this repository whenever the generators change.
+
+## Complete local verification
+
+`scripts/verify-local.sh` builds the required LightUSD consumers and a core-only
+OpenUSD from source under `build/`, then runs the complete suite. Defaults are
+`LIGHTUSD_ROOT=$HOME/work/tinyusdz/large-scene`,
+`OPENUSD_ROOT=$HOME/work/tinyusdz/OpenUSD`, and `JOBS=4`. Override
+`LOCAL_ORACLE_PYTHON` if the OpenUSD checkout has no `.venv/bin/python3`.
+Lean/Mathlib dependencies remain pinned; an existing shared `.lake` symlink is
+copied locally without changing its target. Initial setup needs network access
+for missing Lean, Unicode, wheel, or supplemental dependencies.
+
+The script enables `USDSPEC_REQUIRE_FULL_SUITE`: absent native consumers fail
+configuration. Stock-wheel tests retain their existing names; `local_*` tests
+carry the `oracle-local` label and require an independently installed local
+OpenUSD 26.11. Configure those tests manually with `LOCAL_OPENUSD_ROOT`,
+`LOCAL_OPENUSD_PREFIX`, and `LOCAL_ORACLE_PYTHON`. Local runtime provenance
+records the checkout revision, tracked dirty state, USD version, and Python module.
+Local results describe fork compatibility; the pinned stock wheel remains the
+conformance baseline. Both tracks retain the 15-case strict PCP ceiling.
+
+The combined execution log is `build/verification.log`; JUnit output is
+`build/results.xml`. Checked oracle provenance is saved separately in
+`build/stock-provenance.json` and `build/local-provenance.json`. `ctest --test-dir build -L lean` includes Unicode and
+negative axiom controls. Native vector replay, both combine-chain consumers,
+and the other supplemental categories are also registered when available.

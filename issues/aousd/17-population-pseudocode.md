@@ -61,8 +61,10 @@ L6000-6001: `return reorder(path_element_sorted(property_children), scene_object
    and moves each ordered name together with the unordered run that follows it.
 3. **Duplicates without a spec (LEAN-604).** `unique` runs only inside the per-spec loop.
    If the layer stack that renames `X → Y` onto an existing sibling `Y` has no spec at that
-   path, the result is `[Y, Y]` (`dup_without_specs`); with a spec it is duplicate-free
-   (`listOrderedPrimChildren_nodup`).
+   path, the result is `[Y, Y]` (`dup_without_specs`). Processing a spec after
+   this rename removes the duplicate in this example. The general
+   `listOrderedPrimChildren_nodup` theorem requires a spec in the strongest
+   contributing layer stack, not merely a spec somewhere in the stack.
 4. **`propertyOrder` not uniquified (LEAN-605).** Unlike `primOrder` (L5980,
    `unique(spec.prim_order)`), the property order is passed as authored, so
    `reorder properties = ["a", "a"]` over `{a, b}` yields `[a, a, b]` (`propertyOrder_dup`).
@@ -91,7 +93,7 @@ L534.
    flag) to `compose`.
 2. Specify `reorder` as OpenUSD implements it (or explicitly document the difference), e.g.
    with the `x a b` / `[b, a]` → `x b a` example.
-3. Apply `unique` to the merged children once per layer stack (after the rename step), and
+3. Apply `unique` to the merged children once per layer stack (after its relocation updates and child merges), and
    to `strongest_authored_property_order`.
 
 ## Reviewer checklist

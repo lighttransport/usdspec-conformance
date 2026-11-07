@@ -28,3 +28,6 @@ cover different defects; local 15–17 and 20 cross-reference their shared conte
 Edits applied: Scoped byte observations to inspected source and reproduced files.
 Required edits: none for these checked claims. A human decides whether to file;
 no report has been filed by this review.
+
+Follow-up recheck (2026-11-07): Changed sibling-only wording to the accurate observation that the jump table omits its simultaneous child.
+See [the consolidated recheck](REVIEW-2026-11-07.md) for scope and evidence.

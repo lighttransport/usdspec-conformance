@@ -1,6 +1,6 @@
-# Time codes per second: the "stack-level" note gives different offsets than the normative recursive rule
+# Time codes per second: clarify the accumulated offset in the stack-level note
 
-**Type:** erratum
+**Type:** clarification
 **Spec:** USD Core Specification v1.1.0 (e8f44c0), Composition → Time Codes Per Second → Layer Stack Time Codes Per Second (L5455-5466)
 **Formal reference:** `verif/lean/UsdSpec/LayerOffset.lean` — `stackLevel_offset_ne_recursive` (counterexample), `cumulative_scale_closed_form` (the scale part is true); registry `LEAN-112`
 
@@ -21,14 +21,22 @@ L5462-5467 (note):
 
 ### Observation
 
-The claim holds for the **scale** component (it telescopes to
-`∏ authored scales × rootTcps / layerTcps`) but not for the **offset**.
+The scale telescopes to `∏ authored scales × rootTcps / layerTcps`.
+For the offset, the note does not specify how its "accumulated offset" is
+formed. If it means the composition of authored offsets before TCPS
+adjustments, a single root/leaf ratio does not recover the recursive result.
 Root `R` (24 tcps) sublayers `A` (48 tcps, offset 10) which sublayers `B`
 (48 tcps, offset 5):
 
 - recursive (normative): `⟨10, 1/2⟩ ∘ ⟨5, 1⟩ = ⟨12.5, 1/2⟩`
 - stack-level: accumulated authored offset `⟨15, 1⟩` composed with the ratio
-  `24/48` gives `⟨15, 1/2⟩` (ratio applied after) or `⟨7.5, 1/2⟩` (before).
+  `Q = ⟨0, 24/48⟩` gives `authored ∘ Q = ⟨15, 1/2⟩` or
+  `Q ∘ authored = ⟨7.5, 1/2⟩`. Here `(F ∘ G)(t) = F(G(t))`.
+
+The Lean counterexample checks precisely these two compositions of the
+authored-only accumulated map. It does not refute an interpretation in which
+the accumulated offset already includes the intermediate recursive TCPS
+adjustments; that interpretation needs to be stated to make the note useful.
 
 ### What OpenUSD does
 
@@ -37,8 +45,11 @@ OpenUSD 26.11 places B's sample authored at 0 at stage time **12.5**
 
 ### Request
 
-Restrict the note to the scale ("…produce the same effective **scale** as…"),
-or drop it.
+Define "accumulated offset" and its composition order explicitly, including
+the effect of intermediate TCPS adjustments on descendant offsets. A plain
+authored-only fold followed or preceded by the root/leaf ratio is insufficient.
+Alternatively, restrict the claimed shortcut to the scale component or drop
+the explanatory note; retain the normative recursive rule.
 
 ## Reviewer checklist
 

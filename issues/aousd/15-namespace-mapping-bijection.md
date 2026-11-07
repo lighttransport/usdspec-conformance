@@ -85,5 +85,5 @@ relocates result only if the relocates map carries the identity.
 - [ ] Hand-check that `[(/B,/A),(/,/)]` sends `/A` and `/B` to `/A`.
 - [ ] Read `pxr/usd/pcp/mapFunction.cpp` L760-830 and `Compose` at v26.11.1.
 - [ ] Run `13-21-lean-demo/run.py`; confirm the `15` lines.
-- [ ] Decide whether items 2 and 3 (registry status `candidate`) belong in this issue or are dropped.
+- [ ] Confirm the scope of secondary items 2 and 3; the current registry records both as confirmed text inconsistencies.
 - [ ] Duplicates: `gh search issues --repo aousd/specifications-public "namespace mapping"` and `"bijection"`.

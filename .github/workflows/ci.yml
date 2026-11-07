@@ -64,19 +64,22 @@ jobs:
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
       - name: Build LightUSD tools
         run: |
-          cmake -S lightusd -B lightusd/build -G Ninja -DCMAKE_BUILD_TYPE=Debug \
+          cmake -S lightusd -B lightusd/build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=$PWD/lightusd/build \
             -DLIGHTUSD_NATIVE_PRODUCT=next -DLIGHTUSD_BUILD_TOOLS=ON -DLIGHTUSD_NEXT_BUILD_TESTS=ON
           cmake --build lightusd/build --parallel 4 \
-            --target lusdcat lusdchecker test_name_order test_int64_listop
+            --target lusdcat lusdchecker test_name_order test_int64_listop \
+              test_lean_vectors test_aousd_conformance test_aousd_value_resolution
       - name: Stock OpenUSD oracle
         run: scripts/setup-oracle.sh
       - name: Fetch AOUSD supplemental suite
         run: echo "AOUSD_SUPPLEMENTAL_ROOT=$(scripts/fetch-aousd-supplemental.sh | tail -1)" >> "$GITHUB_ENV"
       - name: Fetch Unicode data
         run: python3 scripts/fetch-lean-unicode-data.py
+      - name: Fetch Mathlib build cache
+        run: cd verif/lean && lake exe cache get
       - name: Configure and run
         run: |
-          cmake -S . -B build -DLIGHTUSD_ROOT=$PWD/lightusd -DLIGHTUSD_BUILD_DIR=$PWD/lightusd/build \
+          cmake -S . -B build -DUSDSPEC_REQUIRE_FULL_SUITE=ON -DLIGHTUSD_ROOT=$PWD/lightusd -DLIGHTUSD_BUILD_DIR=$PWD/lightusd/build \
             -DORACLE_PYTHON=python3 -DORACLE_PYTHONPATH=$PWD/build/stock-openusd-oracle/site-packages \
             -DAOUSD_SUPPLEMENTAL_ROOT=$AOUSD_SUPPLEMENTAL_ROOT
-          ctest --test-dir build -L conformance -j2 --output-on-failure --timeout 900
+          ctest --test-dir build -j2 --output-on-failure --timeout 3600 --output-junit results.xml

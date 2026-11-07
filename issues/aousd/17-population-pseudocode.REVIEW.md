@@ -28,3 +28,6 @@ cover different defects; local 15–17 and 20 cross-reference their shared conte
 Edits applied: Added stock-oracle provenance and a frozen published specification link.
 Required edits: none for these checked claims. A human decides whether to file;
 no report has been filed by this review.
+
+Follow-up recheck (2026-11-07): Stated the strongest-layer-stack hypothesis for the general duplicate-free theorem and placed uniquification after all layer-stack updates.
+See [the consolidated recheck](REVIEW-2026-11-07.md) for scope and evidence.

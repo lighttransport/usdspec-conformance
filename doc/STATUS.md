@@ -1,6 +1,11 @@
 # Verification and conformance status
 
 Summary of what is proved, what is checked by execution, and what is open.
+
+Latest local execution: **37/37 passed, zero skips**, including separate stock and
+source-built local OpenUSD 26.11 tracks. See
+[the 2026-11-07 setup and execution report](validation/verification-2026-11-07.md).
+The sections below retain the original split measurements.
 Measured at the split from LightUSD (this repo's first import, `cd449a7`;
 LightUSD `292a7819d`). The detailed, dated execution ledger is
 [`validation/lean-followup-status.md`](validation/lean-followup-status.md); numbers

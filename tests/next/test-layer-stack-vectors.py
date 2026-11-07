@@ -74,8 +74,10 @@ def main():
             env = os.environ.copy()
             if args.oracle_pythonpath:
                 env['PYTHONPATH'] = str(Path(args.oracle_pythonpath).resolve())
-                env.pop('LD_LIBRARY_PATH', None)
-                env.pop('PXR_PLUGINPATH_NAME', None)
+                if os.environ.get('USDSPEC_ORACLE_MODE', 'stock') != 'local':
+                    env.pop('LD_LIBRARY_PATH', None)
+                if os.environ.get('USDSPEC_ORACLE_MODE', 'stock') != 'local':
+                    env.pop('PXR_PLUGINPATH_NAME', None)
             request = Path(directory) / 'requests.json'
             request.write_text(json.dumps(roots))
             result = subprocess.run([args.oracle_python, '-c', ORACLE,
@@ -89,7 +91,7 @@ def main():
             for case, truth in zip(cases, truths):
                 verify(case, truth, '\n'.join(truth['Composition errors']), 'stock')
     print(f'Lean layer stack: {len(cases)} graph/error cases pass native' +
-          (' and pinned stock OpenUSD' if args.oracle_python else ''))
+          (' and selected OpenUSD oracle' if args.oracle_python else ''))
 
 
 if __name__ == '__main__':

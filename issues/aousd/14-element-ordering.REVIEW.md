@@ -28,3 +28,6 @@ cover different defects; local 15–17 and 20 cross-reference their shared conte
 Edits applied: Restricted the sorting claim to property names; retained child output as fixture-specific evidence.
 Required edits: none for these checked claims. A human decides whether to file;
 no report has been filed by this review.
+
+Follow-up recheck (2026-11-07): Made the requested corrected example conditional on the chosen underscore ordering.
+See [the consolidated recheck](REVIEW-2026-11-07.md) for scope and evidence.

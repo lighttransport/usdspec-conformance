@@ -29,3 +29,6 @@ cover different defects; local 15–17 and 20 cross-reference their shared conte
 Edits applied: Reframed precedence as an ambiguity, corrected five-stack wording, and scoped the proof to eligible unblocked opinions.
 Required edits: none for these checked claims. A human decides whether to file;
 no report has been filed by this review.
+
+Follow-up recheck (2026-11-07): Separated four formal distinguishing cases from the fifth control, corrected the list-of-pairs description, and qualified the unproven truthiness consequence.
+See [the consolidated recheck](REVIEW-2026-11-07.md) for scope and evidence.

@@ -32,8 +32,8 @@ converted to a code point and a value relative to the previous value."
    example encode each *difference* directly (`int32(100000)`, not `99999`).
    "Relative to the previous value" reads as a second delta pass over the
    differences, which would give `[123, −122, 0, 99999, −100000, 1, −1]`.
-3. Unstated details: the code for element *i* is stored in bits `2i..2i+1`
-   of its byte (first element in the low bits; the example's `01 00 00 11`
+3. Unstated details: the code for element *i* is stored in bits `2(i mod 4)..2(i mod 4)+1`
+   of code byte `floor(i/4)` (zero-based indices) (first element in the low bits; the example's `01 00 00 11`
    grouping reads like the opposite), and the most-common-delta tie-break
    (OpenUSD picks the largest value). The tie-break does not affect decoding.
 

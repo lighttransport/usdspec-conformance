@@ -8,13 +8,10 @@ import random
 import subprocess
 import tempfile
 
-ORACLE = r'''
+ORACLE = Path(__file__).with_name('oracle_runtime.py').read_text() + "\noracle_provenance()\n" + r'''
 import importlib.metadata, json, pathlib, sys
 import pxr
 from pxr import Sdf, Tf, Usd
-package = importlib.metadata.distribution('usd-core')
-assert package.version == '26.11', package.version
-assert pathlib.Path(pxr.__file__).resolve() == pathlib.Path(package.locate_file('pxr/__init__.py')).resolve()
 data = json.load(sys.stdin)
 comparisons = [Tf.DictionaryStrcmp(a, b) for a, b in data['pairs']]
 stage = Usd.Stage.CreateInMemory()
@@ -51,8 +48,10 @@ def main():
                       'ns:x10', 'ns:x2', 'NS:X2']
     env = dict(os.environ)
     env['PYTHONPATH'] = str(Path(args.oracle_pythonpath).resolve())
-    env.pop('LD_LIBRARY_PATH', None)
-    env.pop('PXR_PLUGINPATH_NAME', None)
+    if os.environ.get('USDSPEC_ORACLE_MODE', 'stock') != 'local':
+        env.pop('LD_LIBRARY_PATH', None)
+    if os.environ.get('USDSPEC_ORACLE_MODE', 'stock') != 'local':
+        env.pop('PXR_PLUGINPATH_NAME', None)
     oracle = subprocess.run([args.oracle_python, '-c', ORACLE],
         input=json.dumps({'pairs': pairs, 'names': property_names}), text=True,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env, check=True, timeout=120)
@@ -73,7 +72,7 @@ def main():
                 text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, timeout=120)
             assert result.stdout.splitlines() == scenario['names'], (
                 result.stdout.splitlines(), scenario['names'])
-    print(f'Stock 26.11 name ordering: {len(pairs)} comparisons and 3 stage-order scenarios passed')
+    print(f'OpenUSD 26.11 name ordering: {len(pairs)} comparisons and 3 stage-order scenarios passed')
 
 
 if __name__ == '__main__':
