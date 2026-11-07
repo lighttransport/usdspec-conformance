@@ -1,12 +1,13 @@
 # usdspec-conformance
 
-Lean 4 model of the AOUSD USD Core Specification (v1.1), plus differential
+LEAN 4 model of the AOUSD USD Core Specification (v1.1), plus differential
 conformance tests that replay Lean-generated vectors against stock OpenUSD and
 LightUSD. It records where the specification is ambiguous, self-contradictory
 or differs from OpenUSD behavior, as a citation-checked findings registry with
 issue drafts.
 
-Independent project; not affiliated with or endorsed by AOUSD or Pixar.
+An independent project led by Light Transport Entertainment Inc.
+Not affiliated with or endorsed by the Alliance for OpenUSD (AOUSD).
 
 ## Layout
 
