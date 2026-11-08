@@ -1,0 +1,83 @@
+name: browser-wasm
+
+on:
+  workflow_dispatch:
+    inputs:
+      phase:
+        type: choice
+        options: [lightusd, openusd, all]
+        default: lightusd
+        description: Which backend(s) to build
+
+jobs:
+  build-lightusd:
+    if: ${{ github.event.inputs.phase == 'lightusd' || github.event.inputs.phase == 'all' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install emsdk
+        run: |
+          git clone --depth 1 https://github.com/emscripten-core/emsdk.git /opt/emsdk
+          /opt/emsdk/emsdk install latest
+          /opt/emsdk/emsdk activate latest
+          echo "/opt/emsdk/upstream/emscripten" >> $GITHUB_PATH
+          source /opt/emsdk/emsdk_env.sh
+      - name: Build LightUSD next wasm
+        run: |
+          source /opt/emsdk/emsdk_env.sh
+          bash pages/browser/build-wasm-lightusd.sh pages/browser/wasm
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lightusd-wasm
+          path: pages/browser/wasm/lightusd_next.*
+
+  build-openusd:
+    if: ${{ github.event.inputs.phase == 'openusd' || github.event.inputs.phase == 'all' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install emsdk
+        run: |
+          git clone --depth 1 https://github.com/emscripten-core/emsdk.git /opt/emsdk
+          /opt/emsdk/emsdk install latest
+          /opt/emsdk/emsdk activate latest
+          echo "/opt/emsdk/upstream/emscripten" >> $GITHUB_PATH
+      - name: Checkout OpenUSD v26.11.1
+        run: |
+          git clone --depth 1 --branch v26.11.1 https://github.com/PixarAnimationStudios/OpenUSD build/browser-openusd-src
+      - name: Build OpenUSD wasm + facade
+        run: |
+          source /opt/emsdk/emsdk_env.sh
+          cd build/browser-openusd-src
+          python build_scripts/build_usd.py --build-target wasm --build-monolithic /tmp/openusd_wasm
+          # facade stub build goes here; simplified
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openusd-wasm
+          path: build/browser-openusd-src/*.wasm
+
+  release:
+    needs: [build-lightusd, build-openusd]
+    if: always() && github.event.inputs.phase != 'none'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: wasm-phase1-${{ github.run_id }}
+          files: |
+            artifacts/lightusd-wasm/lightusd_next.*
+            artifacts/openusd-wasm/*.wasm
+          generate_release_notes: true
+      - name: Update manifest.json
+        run: |
+          # rebuild manifest.json from Release asset URLs + sha256
+          # commit + push manifest (needs token)

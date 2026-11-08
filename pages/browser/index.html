@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Browser workbench — usdspec-conformance</title>
+<link rel="stylesheet" href="../style.css">
+<style>
+table.cases td, table.cases th { padding: 0.35rem 0.6rem; border-bottom: 1px solid var(--border); }
+.status { font-family: ui-monospace, monospace; font-size: 0.9rem; }
+.live { color: #2e7d32; } .notlive { color: #b00020; } .mixed { color: #b45600; }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap">
+    <a class="home" href="../index.html">usdspec-conformance</a>
+    <a href="../browser/README.md" style="color:var(--muted)">browser workbench</a>
+  </div>
+</header>
+<main>
+<article>
+<h1>Browser workbench — spec gap reproduction</h1>
+<p>Compiler Explorer for USD spec gaps. Each row links to a per-case runner
+(<code>app.html?case=LEAN-111</code>) that executes the same ops list against
+the spec/Lean model column, the LightUSD WASM backend, and the OpenUSD oracle
+backend, and diffs the results per op.</p>
+<table class="cases">
+<thead><tr><th>Finding</th><th>Title</th><th>Lean→spec</th><th>LightUSD wasm</th><th>OpenUSD oracle</th><th>Open</th></tr></thead>
+<tbody id="tbody"></tbody>
+</table>
+<p id="backend-note"></p>
+<details><summary>How to read</summary>
+<ul>
+<li><strong>Lean column</strong> — expected results from the formalization (generated vectors + registry row).</li>
+<li><strong>Backend columns</strong> — live WASM runs when `wasm/manifest.json` pins a valid artifact; otherwise the last recorded native run.</li>
+<li>Open the case page to edit layer text / ops and see per-op diffs.</li>
+</ul>
+</details>
+</article>
+</main>
+<footer class="site-footer">
+  <div class="wrap"><p>Source: <a href="https://github.com/lighttransport/usdspec-conformance/tree/HEAD/pages/browser">github.com/lighttransport/usdspec-conformance/tree/HEAD/pages/browser</a>.</p></div>
+</footer>
+<script>
+(async function () {
+  const base = './';
+  const tbody = document.getElementById('tbody');
+  const note = document.getElementById('backend-note');
+  let manifest = {};
+  try {
+    const r = await fetch(base + 'wasm/manifest.json');
+    manifest = await r.json();
+  } catch (e) { manifest = {}; }
+  const cases = manifest.cases || {};
+  note.textContent = 'Wasm manifest: ' + (manifest.version ? 'loaded (' + Object.keys(cases).length + ' case(s))' : 'not found');
+  for (const [id, c] of Object.entries(cases)) {
+    const tr = document.createElement('tr');
+    const status = '<span class="status mixed">recorded</span>';
+    tr.innerHTML = `<td><a href="app.html?case=${id}">${id}</a></td>` +
+      `<td>${c.title || ''}</td>` +
+      `<td class="status live">Lean</td>` +
+      `<td class="status notlive">not live</td>` +
+      `<td class="status notlive">not live</td>` +
+      `<td><a href="${id}/case.md">case.md</a> &middot; <a href="${id}/case.json">case.json</a></td>`;
+    tbody.appendChild(tr);
+  }
+})();
+</script>
+</body>
+</html>

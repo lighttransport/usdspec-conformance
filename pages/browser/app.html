@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Case workbench — usdspec-conformance</title>
+<link rel="stylesheet" href="../style.css">
+<style>
+body { display: flex; flex-direction: column; height: 100vh; margin: 0; }
+header.site-header { flex: 0 0 auto; }
+main { flex: 1 1 auto; overflow: auto; max-width: none; padding: 0; }
+.wrap { max-width: none; padding: 1rem 1rem 1.5rem; }
+.panel { border: 1px solid var(--border); border-radius: 6px; padding: 0.5rem; margin-bottom: 0.75rem; background: var(--code-bg); }
+.row { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.col { flex: 1 1 260px; min-width: 240px; }
+h2 { margin-top: 0; font-size: 1.05rem; }
+table.diff { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+table.diff th, table.diff td { border: 1px solid var(--border); padding: 0.3rem 0.5rem; vertical-align: top; text-align: left; }
+.mono { font-family: ui-monospace, monospace; font-size: 0.85rem; white-space: pre-wrap; word-break: break-all; }
+.tag { border: 1px solid var(--border); border-radius: 3px; padding: 0.1rem 0.4rem; font-size: 0.8rem; margin-right: 0.3rem; cursor: pointer; }
+.tag.active { background: var(--accent); color: #fff; }
+.ok { color: #2e7d32; } .bad { color: #b00020; } .mixed { color: #b45600; }
+textarea { width: 100%; height: 6rem; font-family: ui-monospace, monospace; font-size: 0.85rem; }
+button { padding: 0.2rem 0.6rem; font-size: 0.9rem; cursor: pointer; }
+</style>
+</head>
+<body>
+<header class="site-header"><div class="wrap"><a class="home" href="../index.html">usdspec-conformance</a> &nbsp;·&nbsp; <a href="./README.md">browser workbench</a></div></header>
+<main>
+<div class="wrap">
+<p id="status" style="font-size:0.9rem;color:var(--muted)"></p>
+<h2 id="case-title">case <code id="case-id"></code></h2>
+<div class="row">
+  <div class="col">
+    <div class="panel"><h2>Layers</h2><div id="layers"></div></div>
+    <div class="panel"><h2>Ops</h2><div id="ops-list"></div></div>
+  </div>
+  <div class="col">
+    <div class="panel"><h2>Expected — Lean model</h2><div id="lean-view" class="mono">loading…</div></div>
+    <div class="panel"><h2>LightUSD wasm</h2><div id="lu-view" class="mono">not live</div></div>
+    <div class="panel"><h2>OpenUSD oracle</h2><div id="ou-view" class="mono">not live</div></div>
+  </div>
+</div>
+<div class="row">
+  <div class="col">
+    <div class="panel"><h2>Diff per op</h2><table class="diff" id="diff-table"><thead><tr><th>op</th><th>lean</th><th>lightusd</th><th>oracle</th></tr></thead><tbody id="diff-body"></tbody></table></div>
+  </div>
+</div>
+</div>
+</main>
+<script>
+async function main(){
+  const qs = new URLSearchParams(location.search);
+  const id = qs.get('case') || 'LEAN-111';
+  document.getElementById('case-id').textContent = id;
+  const base = './';
+  const [man, cj] = await Promise.all([
+    fetch(base+'wasm/manifest.json').then(r=>r.ok?r.json():null).catch(()=>null),
+    fetch(base+'case/'+id+'/case.json').then(r=>r.json())
+  ]);
+  document.getElementById('status').textContent = (man ? 'manifest loaded' : 'manifest missing') + ' · case loaded';
+  document.getElementById('case-title').textContent = `case ${id}`;
+  document.getElementById('layers').innerHTML = (cj.layers||[]).map(l=>`<div class="tag">${l.name}</div>`).join('');
+  document.getElementById('ops-list').innerHTML = (cj.ops||[]).map(o=>`<div class="tag">${o.id}</div>`).join('');
+  const lean = cj.lean||{};
+  const leanView = document.getElementById('lean-view');
+  leanView.innerHTML = JSON.stringify(lean,null,2).replace(/\n/g,'<br>');
+  const tbody = document.getElementById('diff-body');
+  (cj.ops||[]).forEach(op=>{
+    const row = document.createElement('tr');
+    row.innerHTML = `<td>${op.id}</td><td class="mono ok">${JSON.stringify(lean[op.id])}</td><td class="mono bad" id="lu-${op.id}">—</td><td class="mono bad" id="ou-${op.id}">—</td>`;
+    tbody.appendChild(row);
+  });
+}
+main().catch(e=>{document.getElementById('status').textContent='error:'+e.message;});
+</script>
+</body>
+</html>

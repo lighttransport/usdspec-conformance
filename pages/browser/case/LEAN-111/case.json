@@ -1,0 +1,51 @@
+{
+  "id": "LEAN-111",
+  "title": "Layer offsets: the §12 example applies the offset in the wrong direction",
+  "cite": {
+    "spec": [
+      "core_spec.md L6505-6537 (Layer Offset and Scale, §12 example)",
+      "core_spec.md L5436-5440 (effective offset converts a layer's time ordinates into the root layer stack's time scale)",
+      "core_spec.md L4285-4288 (Sublayers: apply parent scale to child offset/scale, then add the child's offset)",
+      "core_spec.md L5483-5487 (Time Codes Per Second: the parent's offset is added)"
+    ],
+    "decl": "verif/lean/UsdSpec/LayerOffset.lean — LEAN-111 examples, composeLiteral_ne",
+    "registry_row": "verif/lean/ISSUES.md (LEAN-111)",
+    "draft": "issues/aousd/10-layer-offset-direction.md",
+    "repo_base": "https://github.com/lighttransport/usdspec-conformance/blob/HEAD/"
+  },
+  "gap": "Spec ambiguity/erratum — §12 computes the sublayer sample time as offset + scale·t (12 → 16) under the reverse (stage→layer) direction, while §10 defines the effective offset as the layer→root affine map; OpenUSD and LightUSD both follow §10 (stage time 12 samples the sublayer at (12−10)/0.5 = 4).",
+  "layers": [
+    {
+      "name": "root.usda",
+      "text": "#usda 1.0\n( subLayers = [ @./sub.usda@ (offset = 10; scale = 0.5) ] )\n"
+    },
+    {
+      "name": "sub.usda",
+      "text": "#usda 1.0\ndef \"P\"\n{\n    double v.timeSamples = { 4: 2, 12: 1, 16: 3 }\n}\n"
+    }
+  ],
+  "ops": [
+    { "id": "samples", "op": "getTimeSamples", "attr": "/P.v" },
+    { "id": "get12", "op": "get", "attr": "/P.v", "t": 12 },
+    { "id": "get16", "op": "get", "attr": "/P.v", "t": 16 }
+  ],
+  "lean": {
+    "note": "Lean model composes the affine maps layer→root (sublayer effective offset ⟨10, 0.5⟩, parent stack identity): a sublayer sample authored at t is presented at stage time 10 + 0.5·t; a stage query at t reads the sublayer at (t − 10)/0.5.",
+    "samples": ["stage times of layer samples {4,12,16} → {12, 16, 18}"],
+    "get12": 2,
+    "get16": 1
+  },
+  "lightusd": {
+    "recorded": "native run (large-scense checkout, Debug) of the same demo; live WASM pending",
+    "samples": [12, 16, 18],
+    "get12": 2,
+    "get16": 1
+  },
+  "oracle": {
+    "recorded": "official PyPI usd-core==26.11, CPython 3.11, Linux x86-64 (issues/aousd/08-12-lean-demo/run.py #10)",
+    "samples": [12, 16, 18],
+    "get12": 2,
+    "get16": 1
+  },
+  "native_log": "issues/aousd/08-12-lean-demo/run.py line 10 output:\n\"10 stage times of layer samples {4,12,16}: [12.0, 16.0, 18.0] | Get(12) = 2.0 (layer value at 4) | Get(16) = 1.0 (layer value at 12)\""
+}

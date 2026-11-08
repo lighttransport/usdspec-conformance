@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "backends": [
+    {
+      "id": "lightusd",
+      "label": "LightUSD (next)",
+      "url": "https://github.com/lighttransport/usdspec-conformance/releases/download/wasm-phase1/lightusd_next.wasm",
+      "js_url": "https://github.com/lighttransport/usdspec-conformance/releases/download/wasm-phase1/lightusd_next.js",
+      "sha256": "PLACEHOLDER_REPLACE_WITH_ACTUAL_SHA256",
+      "size_bytes": 0,
+      "source_revision": "tinyusdz/large-scene@<commit>"
+    },
+    {
+      "id": "openusd",
+      "label": "OpenUSD 26.11 (oracle)",
+      "url": "https://github.com/lighttransport/usdspec-conformance/releases/download/wasm-phase1/openusd_oracle.wasm",
+      "js_url": "https://github.com/lighttransport/usdspec-conformance/releases/download/wasm-phase1/openusd_oracle.js",
+      "sha256": "PLACEHOLDER_REPLACE_WITH_ACTUAL_SHA256",
+      "size_bytes": 0,
+      "source_revision": "OpenUSD@v26.11.1"
+    }
+  ],
+  "cases": {
+    "LEAN-111": {
+      "path": "case/LEAN-111/case.json",
+      "title": "Layer offsets: the §12 example applies the offset in the wrong direction"
+    }
+  }
+}
