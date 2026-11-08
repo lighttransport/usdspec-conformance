@@ -1,4 +1,14 @@
-# pages site output: generated at deploy (or during local testing) by
+# cache and other artifacts produced by Lean's Lake build tool
+.lake/
+.lake
+build/
+__pycache__/
+*.pyc
+
+# Transformed AOUSD grammar is generated for local verification, not distributed.
+/verif/lean/UsdSpec/Usda/GeneratedRules.lean
+
+# Pages site output: generated at deploy (or during local testing) by
 # pages/build.mjs. Sources live in pages/src/ and the repo documents;
 # pages/README.md is tracked documentation.
 /pages/*.html
@@ -9,4 +19,9 @@
 /pages/findings.md
 /pages/verification.md
 /pages/ledger.md
-/pages/browser/wasm/
+
+# Browser workbench wasm build artifacts (published to GitHub Pages, not
+# committed). Keep wasm/manifest.json tracked.
+/pages/browser/wasm/*.wasm
+/pages/browser/wasm/*.js
+/pages/browser/wasm/*.sha256
