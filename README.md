@@ -8,6 +8,10 @@ LightUSD. It records where the specification is ambiguous, self-contradictory
 or differs from OpenUSD behavior, as a citation-checked findings registry with
 issue drafts.
 
+Rendered pages (intro, status, findings registry): for humans as HTML, for AI
+agents as markdown at the same path —
+<https://usdspec-conformance.lighttransport.workers.dev/>
+
 An independent project led by Light Transport Entertainment Inc.
 Not affiliated with or endorsed by the Alliance for OpenUSD (AOUSD).
 
