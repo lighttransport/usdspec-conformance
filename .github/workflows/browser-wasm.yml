@@ -1,85 +1,117 @@
 name: browser-wasm
 
+# Builds the LightUSD `next` WASM backend from a LightUSD checkout, publishes
+# it as the stable `wasm-phase1` release, and redeploys GitHub Pages so
+# /browser/wasm/lightusd_next.{js,wasm} are served same-origin.
+#
+# Requires repository variables (Settings > Variables > Actions):
+#   LIGHTUSD_REPOSITORY   e.g. lighttransport/tinyusdz
+#   LIGHTUSD_REF          a pinned commit or branch with src/next + web/
+# For a private LightUSD repo, also add the LIGHTUSD_TOKEN secret (repo scope).
+#
+# Manual only (workflow_dispatch): the LightUSD checkout is external and moves
+# independently of this repo.
+
 on:
   workflow_dispatch:
     inputs:
-      phase:
-        type: choice
-        options: [lightusd, openusd, all]
-        default: lightusd
-        description: Which backend(s) to build
+      lightusd_repository:
+        description: 'LightUSD owner/name (default: repo variable LIGHTUSD_REPOSITORY)'
+        required: false
+      lightusd_ref:
+        description: 'LightUSD commit or branch (default: repo variable LIGHTUSD_REF)'
+        required: false
+      emsdk_version:
+        description: 'emsdk version to install'
+        default: '4.0.14'
+
+permissions:
+  contents: read
 
 jobs:
   build-lightusd:
-    if: ${{ github.event.inputs.phase == 'lightusd' || github.event.inputs.phase == 'all' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
-      - name: Install emsdk
+      - uses: actions/checkout@v5
+
+      - name: Resolve LightUSD source
+        id: cfg
+        env:
+          IN_REPO: ${{ inputs.lightusd_repository }}
+          IN_REF: ${{ inputs.lightusd_ref }}
+          VAR_REPO: ${{ vars.LIGHTUSD_REPOSITORY }}
+          VAR_REF: ${{ vars.LIGHTUSD_REF }}
         run: |
-          git clone --depth 1 https://github.com/emscripten-core/emsdk.git /opt/emsdk
-          /opt/emsdk/emsdk install latest
-          /opt/emsdk/emsdk activate latest
-          echo "/opt/emsdk/upstream/emscripten" >> $GITHUB_PATH
-          source /opt/emsdk/emsdk_env.sh
+          repo="${IN_REPO:-$VAR_REPO}"
+          ref="${IN_REF:-$VAR_REF}"
+          if [ -z "$repo" ] || [ -z "$ref" ]; then
+            echo "::error::set repository variables LIGHTUSD_REPOSITORY and LIGHTUSD_REF, or pass the workflow inputs"
+            exit 1
+          fi
+          echo "repo=$repo" >> "$GITHUB_OUTPUT"
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout LightUSD
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ steps.cfg.outputs.repo }}
+          ref: ${{ steps.cfg.outputs.ref }}
+          path: lightusd
+          submodules: recursive
+          token: ${{ secrets.LIGHTUSD_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: ${{ inputs.emsdk_version }}
+
       - name: Build LightUSD next wasm
-        run: |
-          source /opt/emsdk/emsdk_env.sh
-          bash pages/browser/build-wasm-lightusd.sh pages/browser/wasm
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        env:
+          LIGHTUSD_ROOT: ${{ github.workspace }}/lightusd
+        run: bash pages/browser/build-wasm-lightusd.sh pages/browser/wasm
+
+      - uses: actions/upload-artifact@v4
         with:
           name: lightusd-wasm
-          path: pages/browser/wasm/lightusd_next.*
-
-  build-openusd:
-    if: ${{ github.event.inputs.phase == 'openusd' || github.event.inputs.phase == 'all' }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 120
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install emsdk
-        run: |
-          git clone --depth 1 https://github.com/emscripten-core/emsdk.git /opt/emsdk
-          /opt/emsdk/emsdk install latest
-          /opt/emsdk/emsdk activate latest
-          echo "/opt/emsdk/upstream/emscripten" >> $GITHUB_PATH
-      - name: Checkout OpenUSD v26.11.1
-        run: |
-          git clone --depth 1 --branch v26.11.1 https://github.com/PixarAnimationStudios/OpenUSD build/browser-openusd-src
-      - name: Build OpenUSD wasm + facade
-        run: |
-          source /opt/emsdk/emsdk_env.sh
-          cd build/browser-openusd-src
-          python build_scripts/build_usd.py --build-target wasm --build-monolithic /tmp/openusd_wasm
-          # facade stub build goes here; simplified
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: openusd-wasm
-          path: build/browser-openusd-src/*.wasm
+          path: |
+            pages/browser/wasm/lightusd_next.js
+            pages/browser/wasm/lightusd_next.wasm
+            pages/browser/wasm/lightusd_next.sha256
+          if-no-files-found: error
 
   release:
-    needs: [build-lightusd, build-openusd]
-    if: always() && github.event.inputs.phase != 'none'
+    needs: build-lightusd
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: write
     steps:
-      - uses: actions/checkout@v4
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
+      - uses: actions/checkout@v5
+
+      - uses: actions/download-artifact@v4
         with:
-          path: artifacts
-      - name: Replace stable release
+          name: lightusd-wasm
+          path: dist
+
+      - name: Replace the stable wasm-phase1 release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release delete wasm-phase1 --yes --cleanup-tag || true
-      - name: Create Release
+
+      - name: Create wasm-phase1 release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: wasm-phase1
-          files: |
-            artifacts/lightusd-wasm/lightusd_next.*
-            artifacts/openusd-wasm/*.wasm
+          name: Browser workbench WASM backend (phase 1)
+          body: |
+            LightUSD `next` WebAssembly module used by the browser workbench.
+            Assets: `lightusd_next.js`, `lightusd_next.wasm`, `lightusd_next.sha256`.
+          files: dist/*
           generate_release_notes: true
+
+      - name: Redeploy GitHub Pages with the new binaries
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run pages.yml --ref main || \
+            echo "pages dispatch unavailable; the next push to pages/browser will redeploy"

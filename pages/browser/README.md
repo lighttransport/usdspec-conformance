@@ -51,5 +51,11 @@ Tooling:
 - `smoke.mjs` — schema-validate every `case/*.json` (run from the repo root)
 
 CI: `.github/workflows/browser-wasm.yml` builds the wasm on demand
-(`workflow_dispatch`); `.github/workflows/pages.yml` deploys the workbench to
-GitHub Pages on pushes that touch this directory or `pages/style.css`.
+(`workflow_dispatch`) and publishes the stable **`wasm-phase1`** release with
+`lightusd_next.{js,wasm,sha256}`, then redeploys GitHub Pages so the module is
+served at `/browser/wasm/`. It requires the repository variables
+`LIGHTUSD_REPOSITORY` (e.g. `lighttransport/tinyusdz`) and `LIGHTUSD_REF`
+(pinned commit/branch containing `web/`), plus a `LIGHTUSD_TOKEN` secret if the
+LightUSD repository is private. `.github/workflows/pages.yml` deploys the
+workbench to GitHub Pages on pushes that touch this directory or
+`pages/style.css`.
