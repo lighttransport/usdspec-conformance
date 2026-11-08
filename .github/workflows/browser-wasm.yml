@@ -4,8 +4,9 @@ name: browser-wasm
 # it as the stable `wasm-phase1` release, and redeploys GitHub Pages so
 # /browser/wasm/lightusd_next.{js,wasm} are served same-origin.
 #
-# Requires repository variables (Settings > Variables > Actions):
-#   LIGHTUSD_REPOSITORY   e.g. lighttransport/tinyusdz
+# Defaults to lighttransport/lightusd@large-scene. Override with repository
+# variables (Settings > Variables > Actions):
+#   LIGHTUSD_REPOSITORY   e.g. lighttransport/lightusd
 #   LIGHTUSD_REF          a pinned commit or branch with src/next + web/
 # For a private LightUSD repo, also add the LIGHTUSD_TOKEN secret (repo scope).
 #
@@ -43,14 +44,12 @@ jobs:
           VAR_REPO: ${{ vars.LIGHTUSD_REPOSITORY }}
           VAR_REF: ${{ vars.LIGHTUSD_REF }}
         run: |
-          repo="${IN_REPO:-$VAR_REPO}"
-          ref="${IN_REF:-$VAR_REF}"
-          if [ -z "$repo" ] || [ -z "$ref" ]; then
-            echo "::error::set repository variables LIGHTUSD_REPOSITORY and LIGHTUSD_REF, or pass the workflow inputs"
-            exit 1
-          fi
+          # Precedence: dispatch input > repository variable > default.
+          repo="${IN_REPO:-${VAR_REPO:-lighttransport/lightusd}}"
+          ref="${IN_REF:-${VAR_REF:-large-scene}}"
           echo "repo=$repo" >> "$GITHUB_OUTPUT"
           echo "ref=$ref" >> "$GITHUB_OUTPUT"
+          echo "Building $repo@$ref"
 
       - name: Checkout LightUSD
         uses: actions/checkout@v5
