@@ -53,15 +53,23 @@ backend, and diffs the results per op.</p>
     manifest = await r.json();
   } catch (e) { manifest = {}; }
   const cases = manifest.cases || {};
-  note.textContent = 'Wasm manifest: ' + (manifest.version ? 'loaded (' + Object.keys(cases).length + ' case(s))' : 'not found');
+  const backends = manifest.backends || [];
+  const backend = (id) => backends.find((b) => b.id === id) || {};
+  const live = (b) => b.sha256 && !String(b.sha256).startsWith('PLACEHOLDER');
+  const lu = backend('lightusd');
+  const ou = backend('openusd');
+  note.textContent = manifest.version
+    ? 'manifest v' + manifest.version +
+      ' · LightUSD: ' + (live(lu) ? 'published (' + (lu.size_bytes/1048576).toFixed(2) + ' MB)' : 'recorded only') +
+      ' · OpenUSD: ' + (live(ou) ? 'published' : 'recorded only')
+    : 'wasm manifest not found';
   for (const [id, c] of Object.entries(cases)) {
     const tr = document.createElement('tr');
-    const status = '<span class="status mixed">recorded</span>';
     tr.innerHTML = `<td><a href="app.html?case=${id}">${id}</a></td>` +
       `<td>${c.title || ''}</td>` +
       `<td class="status live">Lean</td>` +
-      `<td class="status notlive">not live</td>` +
-      `<td class="status notlive">not live</td>` +
+      `<td class="status ${live(lu) ? 'live' : 'mixed'}">${live(lu) ? 'published' : 'recorded'}</td>` +
+      `<td class="status ${live(ou) ? 'live' : 'mixed'}">${live(ou) ? 'published' : 'recorded'}</td>` +
       `<td><a href="${id}/case.md">case.md</a> &middot; <a href="${id}/case.json">case.json</a></td>`;
     tbody.appendChild(tr);
   }

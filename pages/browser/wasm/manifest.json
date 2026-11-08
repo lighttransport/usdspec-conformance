@@ -6,18 +6,19 @@
       "label": "LightUSD (next)",
       "url": "wasm/lightusd_next.wasm",
       "js_url": "wasm/lightusd_next.js",
-      "sha256": "PLACEHOLDER_REPLACE_WITH_ACTUAL_SHA256",
-      "size_bytes": 0,
-      "source_revision": "tinyusdz/large-scene@<commit>"
+      "sha256": "328b65e55e2c6e1467b4332939d2c6d92d0a7b374292ebe54ad19c477e2d5202",
+      "size_bytes": 2333443,
+      "source_revision": "lighttransport/lightusd@d4fafbd1c200665619d909042fbd6ec517d7e699 (large-scene)",
+      "release": "wasm-phase1"
     },
     {
       "id": "openusd",
       "label": "OpenUSD 26.11 (oracle)",
       "url": "wasm/openusd_oracle.wasm",
       "js_url": "wasm/openusd_oracle.js",
-      "sha256": "PLACEHOLDER_REPLACE_WITH_ACTUAL_SHA256",
+      "sha256": "PLACEHOLDER_PHASE2_NOT_BUILT",
       "size_bytes": 0,
-      "source_revision": "OpenUSD@v26.11.1"
+      "source_revision": "OpenUSD@v26.11.1 (phase 2; not built yet)"
     }
   ],
   "cases": {

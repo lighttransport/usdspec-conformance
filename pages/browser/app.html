@@ -58,7 +58,16 @@ async function main(){
     fetch(base+'wasm/manifest.json').then(r=>r.ok?r.json():null).catch(()=>null),
     fetch(base+'case/'+id+'/case.json').then(r=>r.json())
   ]);
-  document.getElementById('status').textContent = (man ? 'manifest loaded' : 'manifest missing') + ' · case loaded';
+  const backends = (man && man.backends) || [];
+  const be = (bid) => backends.find(b=>b.id===bid) || {};
+  const live = (b) => b.sha256 && !String(b.sha256).startsWith('PLACEHOLDER');
+  const statusText = (() => {
+    const parts = [man ? 'manifest loaded' : 'manifest missing', 'case loaded'];
+    parts.push('LightUSD ' + (live(be('lightusd')) ? 'wasm published (runner pending)' : 'recorded results'));
+    parts.push('OpenUSD ' + (live(be('openusd')) ? 'wasm published' : 'recorded results'));
+    return parts.join(' · ');
+  })();
+  document.getElementById('status').textContent = statusText;
   document.getElementById('case-title').textContent = `case ${id}`;
   document.getElementById('layers').innerHTML = (cj.layers||[]).map(l=>`<div class="tag">${l.name}</div>`).join('');
   document.getElementById('ops-list').innerHTML = (cj.ops||[]).map(o=>`<div class="tag">${o.id}</div>`).join('');
