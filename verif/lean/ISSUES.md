@@ -84,5 +84,4 @@ Numbering: 0xx ListOp, 1xx Dict/LayerOffset, 2xx Path, 3xx Schema, 4xx Crate,
 | LEAN-810 | `UsdSpec.Usda.Peg.tab_in_string_rejected` | L9680-9697 | U+0009 is not a `Utf8Character`, so tabs inside strings/comments are excluded. | confirmed: pxr accepts |
 | LEAN-811 | `UsdSpec.Usda.Peg` (module doc; vector rows) | L4692, L4753, L5288, L5332, L6545, L4844 | Six spec examples are not valid USDA (missing `)`, curly quotes, commas between variants). | confirmed: pxr 26.11 rejects all six |
 | LEAN-812 | `UsdSpec.Usda.Peg` (module doc; vector row) | L10342-10348 vs L10388 | Prose shows `append rel myRel` (list op without assignment) as a no-op, but the grammar requires an assignment. | confirmed: pxr rejects |
-
 | LEAN-515 | `UsdSpec.Relocates.OkRootOpenUsd`, `rootTarget_openUsd_only` | L4902 | The root-prim restriction is ambiguous about source and target. OpenUSD forbids root-prim sources but allows root-prim targets. | openusd-differs: clean v26.11.1 layerStack.cpp and stock usd-core 26.11 runtime (`/P/Child` to `/Moved`, no composition errors); preserve compatibility |
