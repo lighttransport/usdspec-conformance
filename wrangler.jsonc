@@ -1,0 +1,13 @@
+// Cloudflare Workers configuration for the static site in pages/.
+//
+// The Worker is assets-only: no worker script runs, and all requests are
+// served from the files in the assets directory (index.html is served at /).
+// See https://developers.cloudflare.com/workers/static-assets/
+{
+  "$schema": "https://unpkg.com/wrangler/config-schema.json",
+  "name": "usdspec-conformance",
+  "compatibility_date": "2026-01-01",
+  "assets": {
+    "directory": "./pages"
+  }
+}

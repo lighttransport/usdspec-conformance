@@ -14,10 +14,18 @@ The build uses Node built-ins only (no npm dependencies, no runtime JS, no CDN):
 markdown is converted to HTML at build time by a small hand-written converter in
 `build.mjs`. Output files land in this directory (`pages/`).
 
-Cloudflare Pages settings:
+Cloudflare (git-connected Workers project, served at
+`https://usdspec-conformance.lighttransport.workers.dev`): the repo-root
+`wrangler.jsonc` declares the assets-only Worker (`assets.directory = ./pages`),
+so Build & Deploy settings are:
 
 - Build command: `node pages/build.mjs`
-- Build output directory: `pages`
+- Deploy command: `npx wrangler deploy`
+- (No Node/NPM version overrides needed; the build has zero dependencies.)
+
+For a classic Cloudflare **Pages** project instead, the equivalent settings are:
+build command `node pages/build.mjs`, output directory `pages`, and the
+advanced root directory left at the repo root.
 
 Generated `pages/*.html` and the agent-facing copies `pages/*.md` are
 git-ignored; only `build.mjs`, `style.css`, `pages/src/*.md` and this README are
