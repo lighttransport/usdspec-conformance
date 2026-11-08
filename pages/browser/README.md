@@ -15,12 +15,20 @@ the same content as `case.md`/`case.json`.
 
 ## Serving
 
-Tracked source lives in this directory; the Workers assets config (`./pages`)
-serves it at:
+Tracked source lives in this directory and is served from two places:
 
-- `https://usdspec-conformance.lighttransport.workers.dev/browser/` (index)
-- `…/browser/app.html?case=LEAN-111` (case runner)
-- `…/browser/case/LEAN-111/case.json` and `…/case/LEAN-111/case.md` (machine/agent data)
+- GitHub Pages (primary for the workbench):
+  - `https://lighttransport.github.io/usdspec-conformance/browser/` (index)
+  - `…/browser/app.html?case=LEAN-111` (case runner)
+  - `…/browser/case/LEAN-111/case.json` and `…/case/LEAN-111/case.md` (agent data)
+  Deployed by `.github/workflows/pages.yml`; enable it once in
+  repo Settings → Pages → Source: **GitHub Actions**.
+- Cloudflare Workers (main site):
+  - `https://usdspec-conformance.lighttransport.workers.dev/browser/`
+  - `…/browser/app.html?case=LEAN-111`
+
+`wasm/manifest.json` URLs are relative to `browser/`, so the modules are served
+from the same origin as the workbench on GitHub Pages.
 
 ## Case format
 
@@ -31,15 +39,17 @@ generated vectors.
 
 ## WASM artifacts
 
-`wasm/` is generated (git-ignored). Manifest file `wasm/manifest.json`
-(tracked) pins each backend artifact: URL, SHA-256, size, source revision.
-Artifacts are published to **GitHub Pages** via a release asset upload in CI:
-each manifest entry contains `url`, `sha256`, `size`, `source_revision`;
-the site's JS fetches them from the GitHub Release assets (no CORS issues for same-origin Worker).
+`wasm/*.wasm` is generated (git-ignored). Manifest file `wasm/manifest.json`
+(tracked) pins each backend artifact: relative URL, SHA-256, size, source
+revision. The `pages` workflow deploys the workbench as a GitHub Pages artifact
+and, when the `wasm-phase1` release exists, downloads those binaries into
+`_site/browser/wasm/` so they are served same-origin with the workbench.
+
+Tooling:
 
 - `build-wasm-lightusd.sh` — emsdk/emcmake build of LightUSD `next` wasm (phase 1)
-- `upload-wasm.sh` — push artifacts to R2 and update `wasm/manifest.json`
-- `smoke.mjs` — schema-validate every `case/*.json` and check case.md mirrors
+- `smoke.mjs` — schema-validate every `case/*.json` (run from the repo root)
 
-CI: `.github/workflows/browser-wasm.yml` runs the same scripts on demand
-(`workflow_dispatch`; no nightly auto-rebuild).
+CI: `.github/workflows/browser-wasm.yml` builds the wasm on demand
+(`workflow_dispatch`); `.github/workflows/pages.yml` deploys the workbench to
+GitHub Pages on pushes that touch this directory or `pages/style.css`.

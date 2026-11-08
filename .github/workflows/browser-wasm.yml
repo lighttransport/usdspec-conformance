@@ -63,21 +63,23 @@ jobs:
     needs: [build-lightusd, build-openusd]
     if: always() && github.event.inputs.phase != 'none'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts
+      - name: Replace stable release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release delete wasm-phase1 --yes --cleanup-tag || true
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: wasm-phase1-${{ github.run_id }}
+          tag_name: wasm-phase1
           files: |
             artifacts/lightusd-wasm/lightusd_next.*
             artifacts/openusd-wasm/*.wasm
           generate_release_notes: true
-      - name: Update manifest.json
-        run: |
-          # rebuild manifest.json from Release asset URLs + sha256
-          # commit + push manifest (needs token)

@@ -1,0 +1,73 @@
+name: pages
+
+# Hosts the browser workbench (pages/browser) on GitHub Pages:
+#   https://lighttransport.github.io/usdspec-conformance/browser/
+# Deploy source: Settings > Pages > Build and deployment > Source = "GitHub Actions".
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'pages/browser/**'
+      - 'pages/style.css'
+      - '.github/workflows/pages.yml'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Assemble site
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p _site/browser
+          cp -r pages/browser/. _site/browser/
+          cp pages/style.css _site/style.css
+
+          # Optional: pull built wasm modules from the wasm-phase1 release when
+          # it exists. The manifest stays tracked; this only fills the binaries.
+          if ! gh release download wasm-phase1 --dir _site/browser/wasm --clobber 2>/dev/null; then
+            echo "no wasm release yet; serving the recorded-result workbench only"
+          fi
+
+          # Root redirect so ../style.css and ../index.html resolve from browser/.
+          cat > _site/index.html <<'HTML'
+          <!doctype html>
+          <html lang="en">
+          <head>
+          <meta charset="utf-8">
+          <meta http-equiv="refresh" content="0; url=./browser/">
+          <title>usdspec-conformance — browser workbench</title>
+          </head>
+          <body>
+          <p><a href="./browser/">Open the USD spec gap workbench</a></p>
+          </body>
+          </html>
+          HTML
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
