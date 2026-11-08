@@ -235,13 +235,14 @@ function parseList(lines, i) {
         continue;
       }
       break;
-    }
-    items.push(item);
+    }    items.push(item);
   }
   const tag = ordered ? 'ol' : 'ul';
   let html = `<${tag}>\n`;
   for (const it of items) {
-    html += `<li>${it.text.map(inline).join(' ')}`;
+    // Single inline pass over the joined item text: inline markers (bold,
+    // links, code) may span wrapped continuation lines.
+    html += `<li>${inline(it.text.join(' '))}`;
     for (const c of it.children) html += c;
     html += `</li>\n`;
   }
@@ -259,13 +260,9 @@ function parseParagraph(lines, i) {
     parts.push(lines[i]);
     i++;
   }
-  let html = parts
-    .map((p) => inline(p))
-    .reduce((acc, p, idx) => {
-      if (idx === 0) return p;
-      const prev = parts[idx - 1];
-      return `${acc}${/ {2}$/.test(prev) ? '<br>\n' : ' '}${p}`;
-    }, '');
+  // Single inline pass over the joined text; inline markers may span wrapped
+  // lines (none of the sources use two-space hard breaks).
+  let html = inline(parts.join(' '));
   html += '\n';
   return { html: html.trim() ? `<p>${html.trim()}\n</p>\n` : '', next: i };
 }
@@ -396,8 +393,7 @@ async function main() {
 
   // Convert and write.
   await fs.mkdir(PAGES_DIR, { recursive: true });
-  for (const { page, md } of prepared) {
-    anchorSeen = new Map();
+  for (const { page, md } of prepared) {    anchorSeen = new Map();
     const firstH1 = md.match(/^#\s+(.+?)\s*$/m);
     const title = page.title ?? (firstH1 ? headingText(firstH1[1]).trim() : page.out);
     const body = blocks(md.replace(/\r\n?/g, '\n').split('\n'));
@@ -438,6 +434,34 @@ ${body}
     }
     console.log(`wrote pages/${page.out}.html (${md.length} bytes markdown)`);
   }
+
+  // 404 page (served by the Workers assets config's not_found_handling).
+  const notFound = `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>404 Not found — ${SITE_NAME}</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap">
+    <a class="home" href="./index.html">${SITE_NAME}</a>
+  </div>
+</header>
+<main>
+  <h1>404 — page not found</h1>
+  <p>The requested page does not exist on this site. Try the <a href="./index.html">home page</a> or one of these:</p>
+  <p>${PAGES.filter((p) => p.out !== 'index')
+    .map((p) => `<a href="./${p.out}.html">${p.label}</a>`)
+    .join(' &middot; ')}</p>
+</main>
+</body>
+</html>
+`;
+  await fs.writeFile(path.join(PAGES_DIR, '404.html'), notFound, 'utf8');
+  console.log('wrote pages/404.html');
 }
 
 main().then(

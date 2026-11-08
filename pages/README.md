@@ -20,8 +20,12 @@ Cloudflare (git-connected Workers project, served at
 so Build & Deploy settings are:
 
 - Build command: `node pages/build.mjs`
-- Deploy command: `npx wrangler deploy`
+- Deploy command: `npx wrangler@4.158.0 deploy`
 - (No Node/NPM version overrides needed; the build has zero dependencies.)
+- The advanced "Root directory" should stay at the repo root, so `wrangler deploy`
+  finds the tracked `wrangler.jsonc` (assets-only, serving `./pages`). If the
+  deploy log shows an interactive "Detected Project Settings / Create
+  wrangler.jsonc" wizard, it ran from the wrong directory.
 
 For a classic Cloudflare **Pages** project instead, the equivalent settings are:
 build command `node pages/build.mjs`, output directory `pages`, and the
