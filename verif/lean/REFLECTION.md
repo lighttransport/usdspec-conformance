@@ -48,3 +48,32 @@ Relocate rule references are component-scoped: `OkSame`, `OkRootOpenUsd`,
 proved equivalent to literal `OkOneToOne`. Compatibility predicates do not
 replace literal `OkSame` or `OkBelow`; raw local authoring validation does not
 model layer-strength selection of contributing relocate opinions.
+
+## Generated C (`lspec_*`, lightusd-c)
+
+Lean → generated C via `tools/lean2c.py` (curated lowerings in
+`tools/templates/`), verified C → Lean via vendored MiniC
+(`verif/lean/UsdSpecC/` + `tools/c2lean.py`). Generated files are DO NOT EDIT
+in `lightusd-c/src/internal/lusd_spec_*.c`.
+
+| Lean | Generated C | Test |
+|---|---|---|
+| `Crate.mostCommon`, `encode32`/`decode32` (T1) | `lspec_crate_*` | `test_lightusd_spec` crate cases incl. I3 spec example; `tools/cdiff.py` (ASan, incl. MiniC 3-way for `most_common`/`contains`) |
+| `ListOp.apply/combine/reduce/iterate` Int64 (T2) | `lspec_listop_i64_*` | `test_lightusd_spec` L1455 combine + apply/reduce; `tools/cdiff.py` |
+| `Dict.merge` flat leaf (T2, uint32 token keys) | `lspec_dict_*` | `test_lightusd_spec` spec examples L6208-6236 |
+| `LayerOffset.valid`/`sanitize` (T2, comparison-only) | `lspec_offset_valid`/`sanitize` (compose/apply f64 numeric-only) | `test_lightusd_spec` valid/sanitize/compose/apply |
+| `ValueResolution.TimeSamples.eval` held + integer-linear (T3) | `lspec_ts_held_eval`, `lspec_ts_linear_eval_i64` (double linear is numeric-only) | `test_lightusd_spec` held/linear/block; `tools/cdiff.py` |
+| `Usda.scanQuoted/quoteString` fuel inverse (T3) | `lspec_quote_len`/`lspec_scan_quoted`/`lspec_quote_string` | `test_lightusd_spec` roundtrip; `tools/cdiff.py` |
+| `Unicode XID` full Unicode 15.1 (667+776 ranges) | `lspec_is_xid_*` via `tools/gen_xid.py` (numeric-only; MiniC table support next) | `test_lightusd_spec` edge spots; `gen_xid --check` drift |
+| Vendored proof rules | `UsdSpecC/Logic.lean` + `Hoare.lean` + `Splice.lean` (`EvE/ExS`/`Triple`/byte-range algebra) | `lake build UsdSpecC` |
+| MiniC differential driver | `UsdSpecC/CDiff.lean` (`usdspec-cdiff` exe): `most_common`/`contains`/`crate_enc`/`crate_dec`/`listop_apply`/`listop_iterate`/`listop_reduce`/`listop_combine`/`dict_merge`/`dict_lookup`/`ts_held_bits`/`ts_linear`/`scan_quoted`/`quote_len`/`offset_valid`/`offset_sanitize` | `tools/cdiff.py` 3-way (`C == MiniC == Python-Lean` for scalars/listop/dict/ts/scan/offset; `C == MiniC` for crate bytes) |
+| First Hoare proof | `UsdSpecC/Proofs/Pack.lean` (`pack_byte_exs`/`pack_byte_call`: `lspec_crate_pack_byte` returns `(a&3)|(b&3)<<2|…` as `u8`, terminates, mem untouched) | `lake build UsdSpecC` |
+| Contains loop invariants | `UsdSpecC/Proofs/Contains.lean` (`ContainsFacts`, `step_eval`, `cond_eval` `i<n`, `body_eq_eval` `xs[i]==v`, `loop_exs` fuel induction `n-i` + `contains_call` whole-function via preamble/loop/final-`ret 0` and `callFunc_of_ExS`) | `lake build UsdSpecC` |
+| Dict-contains loop invariants | `UsdSpecC/Proofs/DictContains.lean` (`DictFacts`, stride 4, `u32` keys, `dict_loop_exs` + `dict_call` whole-function) | `lake build UsdSpecC` |
+| Delta-codec common + 1-byte tail | `UsdSpecC/Proofs/Encode.lean` (`enc_eq_eval`/`toInt_i32_inj`, `encode_delta32_common_body` via `seq_ret`, generalized `encode_byte1_exs` store fragment `mem' = mem.upd b (splice blk 0 (encodeLE 1 (d % 256)))` via `store_int`, `enc_ge_eval`/`enc_le_eval` guards, `encode_delta32_call` whole-function code-1 via `callFunc_of_ExS`) | `lake build UsdSpecC` |
+| Delta-codec 2-byte tail | `UsdSpecC/Proofs/Encode.lean` (`and255_mod`, `evalShr8`, `encode_byte2_exs` two-byte store postcondition via `splice_append`/`encodeLE2_eq`, `enc_ge16_eval`/`enc_le16_eval` guards, `encode_delta32_call2` whole-function code-2) | `lake build UsdSpecC` |
+| Delta-codec 4-byte tail (code 3) | `UsdSpecC/Proofs/Encode4.lean` (`evalShrU` u32 shr by `k<32`, `evalBand255` low-byte mask, `encodeLE4_eq2el`, `foldPair`/`foldPair4`/`splice_bytes4` four-adjacent-u8-writes composition, generalized `encode_byte4_exs` store fragment postcondition `mem' = mem.upd b (splice blk 0 (encodeLE 4 d))` via `store_int`, `encode_delta32_call3` whole-function code-3 via guard-skip + `callFunc_of_ExS`) | `lake build UsdSpecC` |
+
+Drift gates: `python3 tools/lean2c.py --check`, `python3 tools/gen_xid.py --check`,
+`python3 tools/c2lean.py --check` (requires `clang`, LP64/LE),
+`lake build UsdSpecC usdspec-cdiff`, `ctest -R test_lightusd_spec`.
