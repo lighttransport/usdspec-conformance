@@ -67,6 +67,60 @@ MATRICES = [
 ]
 PREV, HYST = 9.0, 1.5
 
+SCREEN_SCENE = '''#usda 1.0
+def Cube "Box" {
+    double size = 2
+}
+def LODScreenSizeHeuristic "Sphere" {
+    float3[] extent = [(-1, -1, -1), (1, 1, 1)]
+    uniform token projectionMethod = "projectedSphere"
+    float[] thresholds = [0.5, 0.1, 0.01]
+    float[] blendThresholds = [0.4, 0.05, 0.005]
+}
+def LODScreenSizeHeuristic "Extent" {
+    float3[] extent = [(-1, -2, -0.5), (1, 2, 0.5)]
+    uniform token projectionMethod = "projectedExtent"
+    float[] thresholds = [0.5, 0.1, 0.01]
+}
+def LODScreenSizeHeuristic "Bound" {
+    rel boundingVolume = [</Box>]
+    uniform token projectionMethod = "projectedExtent"
+    float[] thresholds = [0.3, 0.03]
+    float[] blendThresholds = [0.2, 0.02]
+}
+def LODScreenSizeHeuristic "FallbackExtent" {
+    float[] thresholds = [0.2]
+}
+'''
+# (eye, look-at, perspective?) cameras; one sees the box, one clips through it,
+# one looks away (culled), one orthographic.
+CAMERAS = [((0, 0, 10), True), ((0, 0, 1.5), True), ((0, 0, -10), True),
+           ((3, 2, 6), True), ((0, 0, 10), False)]
+
+
+def frustum_for(eye, perspective):
+    f = Gf.Frustum()
+    f.SetPosition(Gf.Vec3d(*eye))
+    if perspective:
+        f.SetPerspective(40.0, 1.5, 0.5, 100.0)
+    else:
+        f.SetOrthographic(-3, 3, -2, 2, 0.5, 100.0)
+    # Look toward -Z (default orientation); the first camera at -10 looks away.
+    return f
+
+
+def screen_args(f, matrix):
+    nums = list(f.ComputeViewMatrix().GetTranspose().GetTranspose())
+    view = [x for row in f.ComputeViewMatrix() for x in row]
+    proj = [x for row in f.ComputeProjectionMatrix() for x in row]
+    planes = []
+    for plane in f.ComputePlanes():
+        planes += [*plane.GetNormal(), plane.GetDistanceFromOrigin()]
+    window = f.GetWindow().GetSize()
+    persp = 1.0 if f.GetProjectionType() == Gf.Frustum.Perspective else 0.0
+    return view + proj + planes + list(f.GetPosition()) + [persp, f.GetReferencePlaneDepth(),
+                                                           window[0], window[1]] + matrix
+
 
 def oracle(stage, view, matrix):
     rows = {}
@@ -130,6 +184,33 @@ def main():
                             failures.append(f"{path.suffix} view={view} M#{MATRICES.index(matrix)} "
                                             f"{key}: LightUSD {have} OpenUSD {want}")
                         checked += 1
+        screen = Path(tmp) / "screen.usda"
+        screen.write_text(SCREEN_SCENE)
+        sstage = Usd.Stage.Open(str(screen))
+        for eye, persp in CAMERAS:
+            f = frustum_for(eye, persp)
+            for matrix in MATRICES:
+                m = Gf.Matrix4d(*matrix)
+                numbers = Path(tmp) / "frustum.txt"
+                numbers.write_text(" ".join(repr(float(x)) for x in screen_args(f, matrix)))
+                out = subprocess.run([str(args.geom_compare.resolve()), "--dump-lod-screen",
+                                      str(screen), str(numbers)], check=True,
+                                     capture_output=True, text=True, timeout=30).stdout
+                got = {line.split()[0]: (float(line.split()[2]), float(line.split()[4]))
+                       for line in out.splitlines()}
+                for prim in sstage.Traverse():
+                    if prim.GetTypeName() != "LODScreenSizeHeuristic":
+                        continue
+                    q = UsdLod.ScreenSizeHeuristic(prim).CreateScreenSizeHeuristicQuery(
+                        Usd.TimeCode.Default())
+                    size = q.ComputeScreenSize(f, m)
+                    want = (size, q.ComputeLOD(size))
+                    have = got.get(str(prim.GetPath()))
+                    if have is None or not all(math.isclose(a, b, rel_tol=1e-5, abs_tol=1e-7)
+                                               for a, b in zip(have, want)):
+                        failures.append(f"screen eye={eye} persp={persp} M#{MATRICES.index(matrix)} "
+                                        f"{prim.GetPath()}: LightUSD {have} OpenUSD {want}")
+                    checked += 1
     if failures:
         raise SystemExit("\n".join(failures[:20]))
     print(f"{checked} usdLod distance/LOD/override results agree in OpenUSD and LightUSD")
