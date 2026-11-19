@@ -173,6 +173,11 @@ if(LIGHTUSD_BUILD_DIR AND ORACLE_PYTHON AND ORACLE_PYTHONPATH)
       ${SRC}/tests/next/test-domain-lod-runtime.py
       --lusdcat ${LUSDCAT} --geom-compare ${GEOM_COMPARE})
     set_tests_properties(domain_lod_runtime PROPERTIES LABELS "conformance;schema;oracle-stock")
+    conf_test(domain_media_runtime ${CMAKE_COMMAND} -E env
+      ${domain_oracle_env} ${ORACLE_PYTHON}
+      ${SRC}/tests/next/test-domain-media-runtime.py
+      --lusdcat ${LUSDCAT} --geom-compare ${GEOM_COMPARE})
+    set_tests_properties(domain_media_runtime PROPERTIES LABELS "conformance;schema;oracle-stock")
     if(LOCAL_OPENUSD_PREFIX)
       conf_test(domain_render_runtime ${Python3_EXECUTABLE}
         ${SRC}/tests/next/test-domain-render-runtime.py
