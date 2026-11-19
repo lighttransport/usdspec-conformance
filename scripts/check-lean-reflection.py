@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Verify the validator's Lean reflection table against verif/lean.
 
-The validator rule metadata (src/next/validation/validation-context.cc,
+The validator rule metadata (src/validation/validation-context.cc,
 ``kLeanReflectionTable`` between the ``BEGIN/END LEAN_REFLECTION_TABLE``
 markers) names, per rule id, the fully-qualified Lean 4 declaration that
 formalizes the rule. This script parses that C++ table directly (no build
@@ -134,7 +134,7 @@ def main():
     if not args.lightusd:
         print('SKIP: pass --lightusd or set LIGHTUSD_ROOT (validator reflection table)')
         return 77
-    table = os.path.join(os.path.abspath(args.lightusd), 'src', 'next', 'validation',
+    table = os.path.join(os.path.abspath(args.lightusd), 'src', 'validation',
                          'validation-context.cc')
     lean_root = os.path.join(repo, 'verif', 'lean', 'UsdSpec')
     rows = parse_table(table)

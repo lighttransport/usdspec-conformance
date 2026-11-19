@@ -1,13 +1,13 @@
 name: browser-wasm
 
-# Builds the LightUSD `next` WASM backend from a LightUSD checkout, publishes
+# Builds the LightUSD `core` WASM backend from a LightUSD checkout, publishes
 # it as the stable `wasm-phase1` release, and redeploys GitHub Pages so
-# /browser/wasm/lightusd_next.{js,wasm} are served same-origin.
+# /browser/wasm/lightusd.{js,wasm} are served same-origin.
 #
-# Defaults to lighttransport/lightusd@large-scene. Override with repository
+# Defaults to lighttransport/LightUSD@mtlx-conformance. Override with repository
 # variables (Settings > Variables > Actions):
-#   LIGHTUSD_REPOSITORY   e.g. lighttransport/lightusd
-#   LIGHTUSD_REF          a pinned commit or branch with src/next + web/
+#   LIGHTUSD_REPOSITORY   e.g. lighttransport/LightUSD
+#   LIGHTUSD_REF          a pinned commit or branch with src/ + web/
 # For a private LightUSD repo, also add the LIGHTUSD_TOKEN secret (repo scope).
 #
 # Manual only (workflow_dispatch): the LightUSD checkout is external and moves
@@ -24,7 +24,7 @@ on:
         required: false
       emsdk_version:
         description: 'emsdk version to install'
-        default: '4.0.14'
+        default: '7.0.0'
 
 permissions:
   contents: read
@@ -45,8 +45,8 @@ jobs:
           VAR_REF: ${{ vars.LIGHTUSD_REF }}
         run: |
           # Precedence: dispatch input > repository variable > default.
-          repo="${IN_REPO:-${VAR_REPO:-lighttransport/lightusd}}"
-          ref="${IN_REF:-${VAR_REF:-large-scene}}"
+          repo="${IN_REPO:-${VAR_REPO:-lighttransport/LightUSD}}"
+          ref="${IN_REF:-${VAR_REF:-mtlx-conformance}}"
           echo "repo=$repo" >> "$GITHUB_OUTPUT"
           echo "ref=$ref" >> "$GITHUB_OUTPUT"
           echo "Building $repo@$ref"
@@ -64,18 +64,24 @@ jobs:
         with:
           version: ${{ inputs.emsdk_version }}
 
-      - name: Build LightUSD next wasm
+      - name: Build LightUSD core WASM
         env:
           LIGHTUSD_ROOT: ${{ github.workspace }}/lightusd
-        run: bash pages/browser/build-wasm-lightusd.sh pages/browser/wasm
+        run: |
+          git -C "$LIGHTUSD_ROOT" rev-parse HEAD
+          bash pages/browser/build-wasm-lightusd.sh pages/browser/wasm
+
+      - name: Smoke test the WASM backend
+        run: node --experimental-default-type=module pages/browser/check-lightusd-wasm.mjs pages/browser/wasm
 
       - uses: actions/upload-artifact@v4
         with:
           name: lightusd-wasm
           path: |
-            pages/browser/wasm/lightusd_next.js
-            pages/browser/wasm/lightusd_next.wasm
-            pages/browser/wasm/lightusd_next.sha256
+            pages/browser/wasm/lightusd.js
+            pages/browser/wasm/lightusd.wasm
+            pages/browser/wasm/lightusd.sha256
+            pages/browser/wasm/lightusd.revision
           if-no-files-found: error
 
   release:
@@ -103,8 +109,8 @@ jobs:
           tag_name: wasm-phase1
           name: Browser workbench WASM backend (phase 1)
           body: |
-            LightUSD `next` WebAssembly module used by the browser workbench.
-            Assets: `lightusd_next.js`, `lightusd_next.wasm`, `lightusd_next.sha256`.
+            LightUSD `core` WebAssembly module used by the browser workbench.
+            Assets: `lightusd.js`, `lightusd.wasm`, `lightusd.sha256`.
           files: dist/*
           generate_release_notes: true
 

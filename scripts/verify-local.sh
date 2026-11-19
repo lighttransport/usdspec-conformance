@@ -2,7 +2,7 @@
 # Build external consumers locally and retain a complete CTest execution report.
 set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
-lightusd="${LIGHTUSD_ROOT:-$HOME/work/tinyusdz/large-scene}"
+lightusd="${LIGHTUSD_ROOT:-$HOME/work/tinyusdz/main}"
 jobs="${JOBS:-4}"
 mkdir -p "$root/build"
 python3 "$root/scripts/check-license-notices.py"
@@ -19,11 +19,11 @@ if [[ ! -f "$root/verif/lean/.lake/packages/mathlib/.lake/build/lib/lean/Mathlib
 fi
 python3 "$root/scripts/check-native-vector-copy.py" --lightusd "$lightusd"
 cmake -S "$lightusd" -B "$root/build/lightusd" -G Ninja \
-  -DCMAKE_RUNTIME_OUTPUT_DIRECTORY="$root/build/lightusd" -DCMAKE_BUILD_TYPE=Debug -DLIGHTUSD_NATIVE_PRODUCT=next \
-  -DLIGHTUSD_BUILD_TOOLS=ON -DLIGHTUSD_NEXT_BUILD_TESTS=ON
+  -DCMAKE_RUNTIME_OUTPUT_DIRECTORY="$root/build/lightusd" -DCMAKE_BUILD_TYPE=Debug \
+  -DLIGHTUSD_BUILD_TOOLS=ON -DLIGHTUSD_BUILD_TESTS=ON
 cmake --build "$root/build/lightusd" --parallel "$jobs" --target \
-  lusdcat lusdchecker test_name_order test_int64_listop test_lean_vectors \
-  test_aousd_conformance test_aousd_value_resolution
+  lusdcat lusdchecker lusdzconvert skin_compare test_name_order test_int64_listop test_lean_vectors \
+  test_aousd_conformance test_aousd_value_resolution test_validation
 ORACLE_PYTHON="${ORACLE_PYTHON:-python3.11}" "$root/scripts/setup-oracle.sh"
 export AOUSD_SUPPLEMENTAL_CACHE="${AOUSD_SUPPLEMENTAL_CACHE:-$root/build/aousd-supplemental}"
 suite="${AOUSD_SUPPLEMENTAL_ROOT:-}"

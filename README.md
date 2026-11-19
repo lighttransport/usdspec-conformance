@@ -69,7 +69,7 @@ open items. Headline numbers at the time of the split:
 
 ## Relationship to LightUSD
 
-LightUSD (`src/next/`) is the implementation under test. The Lean generators here
+LightUSD (`src/`) is the implementation under test. The Lean generators here
 are the source of truth for `tests/next/generated/lean/*.inc`; LightUSD's own C++
 consumers (`test_lean_vectors` etc.) read a copy of those files, which must be
 refreshed from this repository whenever the generators change.
@@ -78,7 +78,7 @@ refreshed from this repository whenever the generators change.
 
 `scripts/verify-local.sh` builds the required LightUSD consumers and a core-only
 OpenUSD from source under `build/`, then runs the complete suite. Defaults are
-`LIGHTUSD_ROOT=$HOME/work/tinyusdz/large-scene`,
+`LIGHTUSD_ROOT=$HOME/work/tinyusdz/main`,
 `OPENUSD_ROOT=$HOME/work/tinyusdz/OpenUSD`, and `JOBS=4`. Override
 `LOCAL_ORACLE_PYTHON` if the OpenUSD checkout has no `.venv/bin/python3`.
 Lean/Mathlib dependencies remain pinned; an existing shared `.lake` symlink is
@@ -109,3 +109,96 @@ The transformed grammar is generated locally for auditing and excluded from the
 distributed source. CTest prepares it automatically. Before running Lake directly,
 run `python3 scripts/extract-usda-peg.py --lean` from this repository's root.
 Do not publish the local transformed grammar or compiled audit modules containing it.
+
+
+## USD schema domain catalogs
+
+The Lean catalogs under `UsdSpec/Domains` are generated from the OpenUSD
+`v26.11.0` schema layers and plugin registrations. Regenerate or check them
+using OpenUSD 26.11 Python bindings and a checkout that contains that tag.
+
+```sh
+python3 scripts/generate-domain-catalogs.py /path/to/OpenUSD --check --check-registry
+```
+
+The generated layers give inherited property declarations as emitted by
+`usdGenSchema`. Catalog fallbacks are serialized as USDA literals with their
+declared value types. The round-trip gate replays these literals as authored
+values so it checks exact preservation of the source defaults.
+
+The stock registry comparison checks observable schema kinds and property
+definitions. Builds without the optional USD MaterialX plugin report
+`MaterialXConfigAPI` as source-only coverage.
+
+Native registry replay checks each catalog schema's kind and parent, and
+every concrete or applied property declaration through an unauthored prim.
+Built-in API lists are checked in expansion order, including nested volume
+APIs and the collision group's named collection.
+The production registry table is generated from this catalog, with properties
+inherited through the schema parents. The diagnostic replay covers these
+authored-layer rules.
+
+| Family | Diagnostic coverage |
+| --- | --- |
+| Geometry | Mesh topology, GeomSubset partitions, Points arrays and widths, PointInstancer arrays and indices, and BasisCurves varying widths |
+| Skeleton | Joint topology, animation and blend-shape array sizes, and inbetween weights |
+| Physics | Axis, joint limits, gravity, authored scalar ranges, drive values, and center-of-mass sentinels |
+| MaterialX | Configuration API placement and the version opinion |
+| Volume | Field assets, resolved targets, particle providers, array sizes, and spherical harmonics |
+
+The root-count and MaterialX version recommendations reflect LightUSD policy.
+The authored-layer replay checks error and warning counts, including cases
+with multiple findings for the same rule. The skeleton array models cover
+representable sample maps with finite, ordered time codes.
+
+The `domain_composed_validation` gate checks stronger opinions that introduce
+or clear findings across all five families. Each case checks the weak layer,
+the composed stage, and the stage reopened from flattened USDC.
+
+The composed cases include sampled extents, mesh normals, and PointInstancer
+topology and orientations. They also exercise inherited skinning influences,
+joint and collider relationships, MaterialX port and terminal connections,
+and forwarded Volume fields. A case can declare distinct expectations when
+flattening drops authorship information, as it does for an explicit field
+relationship block.
+
+The `domain_roundtrip` conformance test compares field and list-op opinions
+in authored layers and flattened stages. Lean supplies the expected strongest
+opinions across the layer stack. Stock OpenUSD composes the same inputs and
+reads the native USDA and USDC outputs. LightUSD reopens both encodings
+and composes stacks of crates written by both implementations. External references and loaded payloads
+check namespace remapping of relationship targets and shader connections.
+Deferred payload cases check that local opinions survive without payload contents.
+The gate also authors every property declaration in the five-family catalog, including
+declared-only relationships and concrete instances of multiple-apply APIs.
+For each declaration it also replays a typed default or relationship target.
+The sample matrix covers varying attributes with rational sublayer offsets
+and tests stronger sample maps, stronger defaults and blocks that suppress
+weaker samples, and weaker sample maps that survive. Stronger sample maps can
+also coexist with weaker defaults, including maps with blocked time samples.
+
+Use the Python interpreter and module path from a MaterialX-enabled OpenUSD
+26.11 installation to run the strict registry check. Make the installation's
+MaterialX shared libraries available to the dynamic loader if required.
+For CTest, configure those Python paths with `ORACLE_PYTHON` and
+`ORACLE_PYTHONPATH`, set `ORACLE_REQUIRE_MATERIALX=ON`, and use
+`ORACLE_MATERIALX_LIBRARY_PATH` if the shared libraries need a loader path.
+
+```sh
+python tests/next/test-domain-roundtrip.py --require-materialx \
+  --lusdcat /path/to/LightUSD/build_ninja/lusdcat
+```
+
+The `domain_package` gate replays the focused scenes through `lusdzconvert`.
+It compares USDA- and USDC-rooted flattened packages and packages that
+retain their sublayers, references, or payloads. Both LightUSD and stock OpenUSD
+reopen and compose the retained packages, including packages written by
+OpenUSD with USDA and USDC roots. The volume scenes test the
+layer's asset path opinions without loading volume payloads.
+
+
+The skeleton deformation gate also checks a dual-quaternion discriminator
+against stock OpenUSD. With zero translations and a blend of identity and
+a half-turn, it verifies that the two skinning methods produce different
+points. LightUSD validates both method tokens in authored USD, while its
+deformation evaluator currently supports classic linear skinning.

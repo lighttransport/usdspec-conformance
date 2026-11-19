@@ -42,6 +42,27 @@ jobs:
             echo "no wasm release yet; serving the recorded-result workbench only"
           fi
 
+          python3 - <<'PYTHON'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          directory = Path("_site/browser/wasm")
+          manifest = directory / "manifest.json"
+          data = json.loads(manifest.read_text())
+          backend = next(b for b in data["backends"] if b["id"] == "lightusd")
+          wasm = directory / "lightusd.wasm"
+          checksum = directory / "lightusd.sha256"
+          revision = directory / "lightusd.revision"
+          if all(p.is_file() for p in (wasm, checksum, revision, directory / "lightusd.js")):
+              digest = hashlib.sha256(wasm.read_bytes()).hexdigest()
+              if digest != checksum.read_text().strip():
+                  raise SystemExit("LightUSD release checksum mismatch")
+              backend.update(sha256=digest, size_bytes=wasm.stat().st_size,
+                             source_revision=revision.read_text().strip())
+          manifest.write_text(json.dumps(data, indent=2) + "\n")
+          PYTHON
+
           # Root redirect so ../style.css and ../index.html resolve from browser/.
           cat > _site/index.html <<'HTML'
           <!doctype html>

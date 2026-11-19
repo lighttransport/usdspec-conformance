@@ -10,6 +10,10 @@ import Gen.Vectors.Lz4
 import Gen.Vectors.Usda
 import Gen.Vectors.PrimIndex
 import Gen.Vectors.LayerStack
+import Gen.Vectors.Domains
+import Gen.Vectors.DomainRoundtrip
+import Gen.Vectors.DomainDeclarations
+import Gen.Vectors.DomainComposedValidation
 
 /-!
 `usdspec-gen --out DIR [--check]`
@@ -21,7 +25,7 @@ different file).
 open Gen
 
 def allFiles : List (String × String) :=
-  ListOpVec.files ++ IntCodeVec.files ++ OffsetVec.files ++ PathSchemaVec.files ++ CrateVec.files ++ VrVec.files ++ SplineVec.files ++ ClipVec.files ++ Lz4Vec.files ++ UsdaVec.files ++ PrimIndexVec.files ++ LayerStackVec.files
+  ListOpVec.files ++ IntCodeVec.files ++ OffsetVec.files ++ PathSchemaVec.files ++ CrateVec.files ++ VrVec.files ++ SplineVec.files ++ ClipVec.files ++ Lz4Vec.files ++ UsdaVec.files ++ PrimIndexVec.files ++ LayerStackVec.files ++ DomainsVec.files ++ DomainRoundtrip.files ++ DomainDeclarations.files ++ DomainComposedValidation.files
 
 def main (args : List String) : IO UInt32 := do
   let mut out : Option String := none

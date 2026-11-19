@@ -43,18 +43,18 @@ jobs:
 
   differential:
     # Replays the Lean vectors against LightUSD and stock OpenUSD 26.11.
-    # Requires repository variables LIGHTUSD_REPOSITORY (owner/name) and
-    # LIGHTUSD_REF (a pinned commit); skipped until they are configured.
-    if: ${{ vars.LIGHTUSD_REPOSITORY != '' && vars.LIGHTUSD_REF != '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@v5
       - uses: actions/checkout@v5
         with:
-          repository: ${{ vars.LIGHTUSD_REPOSITORY }}
-          ref: ${{ vars.LIGHTUSD_REF }}
+          repository: ${{ vars.LIGHTUSD_REPOSITORY || 'lighttransport/LightUSD' }}
+          ref: ${{ vars.LIGHTUSD_REF || 'mtlx-conformance' }}
           path: lightusd
+          submodules: recursive
+          token: ${{ secrets.LIGHTUSD_TOKEN || secrets.GITHUB_TOKEN }}
+      - run: git -C lightusd rev-parse HEAD
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -65,10 +65,10 @@ jobs:
       - name: Build LightUSD tools
         run: |
           cmake -S lightusd -B lightusd/build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=$PWD/lightusd/build \
-            -DLIGHTUSD_NATIVE_PRODUCT=next -DLIGHTUSD_BUILD_TOOLS=ON -DLIGHTUSD_NEXT_BUILD_TESTS=ON
+            -DLIGHTUSD_BUILD_TOOLS=ON -DLIGHTUSD_BUILD_TESTS=ON
           cmake --build lightusd/build --parallel 4 \
-            --target lusdcat lusdchecker test_name_order test_int64_listop \
-              test_lean_vectors test_aousd_conformance test_aousd_value_resolution
+            --target lusdcat lusdchecker lusdzconvert test_name_order test_int64_listop \
+              test_lean_vectors test_aousd_conformance test_aousd_value_resolution test_validation
       - name: Stock OpenUSD oracle
         run: scripts/setup-oracle.sh
       - name: Fetch AOUSD supplemental suite

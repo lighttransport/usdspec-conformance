@@ -36,7 +36,7 @@ end Actual
 
     def test_required_checker_cannot_silently_skip(self):
         with tempfile.TemporaryDirectory() as directory:
-            table = Path(directory, 'src/next/validation')
+            table = Path(directory, 'src/validation')
             table.mkdir(parents=True)
             table.joinpath('validation-context.cc').write_text(
                 '// BEGIN LEAN_REFLECTION_TABLE\n{"rule.x", "UsdSpec.ListOp.apply"},\n'

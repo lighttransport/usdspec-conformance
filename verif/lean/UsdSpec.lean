@@ -44,3 +44,12 @@ import UsdSpec.Unicode.NormTables
 import UsdSpec.Unicode.Normalize
 import UsdSpec.Usda.Peg
 import UsdSpec.Usda.Rules
+import UsdSpec.Domains.UsdGeom
+import UsdSpec.Domains.UsdSkel
+import UsdSpec.Domains.UsdPhysics
+import UsdSpec.Domains.UsdMtlx
+import UsdSpec.Domains.UsdVol
+import UsdSpec.Domains.Validation
+import UsdSpec.Domains.VolumeValidation
+import UsdSpec.Domains.SkeletonValidation
+import UsdSpec.Domains.Values

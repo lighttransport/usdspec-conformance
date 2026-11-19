@@ -3,12 +3,12 @@
   "backends": [
     {
       "id": "lightusd",
-      "label": "LightUSD (next)",
-      "url": "wasm/lightusd_next.wasm",
-      "js_url": "wasm/lightusd_next.js",
-      "sha256": "328b65e55e2c6e1467b4332939d2c6d92d0a7b374292ebe54ad19c477e2d5202",
-      "size_bytes": 2333443,
-      "source_revision": "lighttransport/lightusd@d4fafbd1c200665619d909042fbd6ec517d7e699 (large-scene)",
+      "label": "LightUSD (core)",
+      "url": "wasm/lightusd.wasm",
+      "js_url": "wasm/lightusd.js",
+      "sha256": "PLACEHOLDER",
+      "size_bytes": null,
+      "source_revision": "lighttransport/LightUSD@mtlx-conformance",
       "release": "wasm-phase1"
     },
     {
@@ -24,7 +24,7 @@
   "cases": {
     "LEAN-111": {
       "path": "case/LEAN-111/case.json",
-      "title": "Layer offsets: the §12 example applies the offset in the wrong direction"
+      "title": "Layer offsets: the \u00a712 example applies the offset in the wrong direction"
     }
   }
 }

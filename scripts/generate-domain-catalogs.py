@@ -1,0 +1,151 @@
+#!/usr/bin/env python3
+"""Generate Lean declaration catalogs from OpenUSD v26.11.0 using stock Sdf."""
+import argparse
+import hashlib
+import json
+from pathlib import Path
+import subprocess
+
+from pxr import Sdf, Usd
+
+DOMAINS = ("usdGeom", "usdSkel", "usdPhysics", "usdMtlx", "usdVol")
+TAG = "v26.11.0"
+
+
+def quote(value):
+    return json.dumps(value, ensure_ascii=False)
+
+
+def strings(values):
+    return "[" + ", ".join(map(quote, values)) + "]"
+
+
+def fallback_literal(prop):
+    """Serialize an Sdf default as the exact USDA literal for its declared type."""
+    layer = Sdf.Layer.CreateAnonymous(".usda")
+    prim = Sdf.CreatePrimInLayer(layer, "/Fallback")
+    attr = Sdf.AttributeSpec(prim, "value", prop.typeName)
+    attr.default = prop.default
+    _, assignment, body = layer.ExportToString().partition(" value = ")
+    literal, close, _ = body.rpartition("\n}")
+    if not assignment or not close:
+        raise ValueError(f"could not serialize default for {prop.path}")
+    return literal.strip()
+
+
+def check_registry(registry, domain, schemas, layer):
+    """Compare source declarations with observable stock prim definitions."""
+    checked = 0
+    for name, info in sorted(schemas.items()):
+        kind = info["schemaKind"]
+        actual = str(registry.GetSchemaKind(name))
+        if domain == "usdMtlx" and actual == "Invalid":
+            print(f"{name}: registry unavailable in this OpenUSD build; checked source only")
+            continue
+        if actual[:1].lower() + actual[1:] != kind:
+            raise ValueError(f"{name}: registry kind {actual}, expected {kind}")
+        checked += 1
+        if kind == "concreteTyped":
+            definition = registry.FindConcretePrimDefinition(name)
+        elif kind in ("singleApplyAPI", "multipleApplyAPI"):
+            definition = registry.FindAppliedAPIPrimDefinition(name)
+        else:
+            continue
+        if not definition:
+            raise ValueError(f"{name}: missing registry prim definition")
+        declared = layer.GetPrimAtPath("/" + name)
+        for prop in declared.properties if declared else []:
+            actual_prop = definition.GetPropertyDefinition(prop.name)
+            attribute = isinstance(prop, Sdf.AttributeSpec)
+            if not actual_prop or actual_prop.IsAttribute() != attribute:
+                raise ValueError(f"{name}.{prop.name}: registry property kind differs")
+            if actual_prop.GetVariability() != prop.variability:
+                raise ValueError(f"{name}.{prop.name}: registry variability differs")
+            if attribute and definition.GetAttributeDefinition(prop.name).GetTypeName() != prop.typeName:
+                raise ValueError(f"{name}.{prop.name}: registry attribute type differs")
+            if prop.HasInfo("default") and (
+                repr(definition.GetAttributeFallbackValue(prop.name)) != repr(prop.default)
+            ):
+                raise ValueError(f"{name}.{prop.name}: registry fallback differs")
+    print(f"{domain}: {checked} schema kinds checked against stock registry")
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("openusd", type=Path)
+    parser.add_argument("--check", action="store_true")
+    parser.add_argument("--check-registry", action="store_true")
+    args = parser.parse_args()
+    if Usd.GetVersion() != (0, 26, 11):
+        parser.error("OpenUSD 26.11 Python bindings are required")
+
+    def read(domain, name):
+        return subprocess.check_output(
+            ["git", "-C", args.openusd, "show", f"{TAG}:pxr/usd/{domain}/{name}"])
+
+    domains = DOMAINS + ("usd",)
+    plugins = {}
+    for domain in domains:
+        plugin = read(domain, "plugInfo.json").decode()
+        plugin = "\n".join(line for line in plugin.splitlines()
+                           if not line.lstrip().startswith("#"))
+        plugins[domain] = {name: info for entry in json.loads(plugin)["Plugins"]
+                           for name, info in entry["Info"]["Types"].items()
+                           if "schemaIdentifier" in info}
+    identifiers = {name: info["schemaIdentifier"] for types in plugins.values()
+                   for name, info in types.items()}
+    output = Path(__file__).resolve().parents[1] / "verif/lean/UsdSpec/Domains"
+    for domain in DOMAINS:
+        module = domain[0].upper() + domain[1:]
+        sources = {name: read(domain, name) for name in
+                   ("schema.usda", "generatedSchema.usda", "plugInfo.json")}
+        layer = Sdf.Layer.CreateAnonymous(".usda")
+        if not layer.ImportFromString(sources["generatedSchema.usda"].decode()):
+            raise ValueError(f"invalid generated layer for {domain}")
+        types = {info["schemaIdentifier"]: info for info in plugins[domain].values()}
+        if args.check_registry:
+            check_registry(Usd.SchemaRegistry(), domain, types, layer)
+        lines = ["-- Generated by scripts/generate-domain-catalogs.py.",
+                 f"-- OpenUSD {TAG}, pxr/usd/{domain}."]
+        lines.extend(f"-- {name} SHA-256 {hashlib.sha256(data).hexdigest()}"
+                     for name, data in sources.items())
+        lines.extend(["import UsdSpec.Domains.Catalog", "",
+                      f"namespace UsdSpec.Domains.{module}", "",
+                      "def catalog : List Schema := ["])
+        schemas = []
+        for name, info in sorted(types.items()):
+            prim = layer.GetPrimAtPath("/" + name)
+            parents = [identifiers.get(base, base) for base in info["bases"]]
+            applied = list(prim.GetInfo("apiSchemas").GetAppliedItems()) if (
+                prim and prim.HasInfo("apiSchemas")) else []
+            properties = []
+            for prop in sorted(prim.properties, key=lambda prop: prop.name) if prim else []:
+                attribute = isinstance(prop, Sdf.AttributeSpec)
+                kind = ".attribute" if attribute else ".relationship"
+                value_type = str(prop.typeName) if attribute else ""
+                tokens = list(prop.GetInfo("allowedTokens")) if prop.HasInfo("allowedTokens") else []
+                fallback = "none"
+                if prop.HasInfo("default"):
+                    fallback = "some " + quote(fallback_literal(prop))
+                properties.append(
+                    f"    ⟨{quote(prop.name)}, {kind}, {quote(value_type)}, "
+                    f"{quote(str(prop.variability))}, {strings(tokens)}, {fallback}⟩")
+            schemas.append(
+                f"  ⟨{quote(name)}, {quote(info['schemaKind'])}, {strings(parents)}, "
+                f"{strings(applied)}, {strings(info.get('apiSchemaCanOnlyApplyTo', []))}, ["
+                + ("\n" + ",\n".join(properties) + "\n  " if properties else "") + "]⟩")
+        unknown = {prim.name for prim in layer.rootPrims} - types.keys()
+        if unknown:
+            raise ValueError(f"undeclared {domain} schema names: {sorted(unknown)}")
+        lines.extend([",\n".join(schemas), "]", "", f"end UsdSpec.Domains.{module}", ""])
+        destination = output / f"{module}.lean"
+        generated = "\n".join(lines)
+        if args.check:
+            if not destination.exists() or destination.read_text() != generated:
+                raise SystemExit(f"catalog drift: {destination}")
+        else:
+            destination.write_text(generated)
+
+
+if __name__ == "__main__":
+    main()
