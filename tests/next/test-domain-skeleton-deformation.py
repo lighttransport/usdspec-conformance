@@ -42,6 +42,68 @@ def SkelRoot "Model" {
 """.replace("IDENTITY", "((1,0,0,0),(0,1,0,0),(0,0,1,0),(0,0,0,1))")
 
 
+BLEND_SCENE = """#usda 1.0
+def SkelRoot "Model" {
+    def Skeleton "Rig" (prepend apiSchemas = ["SkelBindingAPI"]) {
+        uniform token[] joints = ["root"]
+        uniform matrix4d[] bindTransforms = [((1,0,0,0),(0,1,0,0),(0,0,1,0),(0,0,0,1))]
+        uniform matrix4d[] restTransforms = [((1,0,0,0),(0,1,0,0),(0,0,1,0),(0,0,0,1))]
+        rel skel:animationSource = </Model/Motion>
+    }
+    def SkelAnimation "Motion" {
+        uniform token[] joints = ["root"]
+        float3[] translations.timeSamples = {0: [(0,0,0)], 2: [(0,0,2)]}
+        quatf[] rotations = [(1,0,0,0)]
+        half3[] scales = [(1,1,1)]
+        uniform token[] blendShapes = ["Smile", "Brow"]
+        float[] blendShapeWeights.timeSamples = {0: [0, 0], 1: [0.5, 1], 2: [1, 0.25]}
+    }
+    def Mesh "Mesh" (prepend apiSchemas = ["SkelBindingAPI"]) {
+        rel skel:skeleton = </Model/Rig>
+        uniform token[] skel:blendShapes = ["Smile", "Brow"]
+        rel skel:blendShapeTargets = [</Model/Mesh/Smile>, </Model/Mesh/Brow>]
+        point3f[] points = [(0,0,0),(1,0,0),(0,1,0),(1,1,0)]
+        int[] faceVertexCounts = [4]
+        int[] faceVertexIndices = [0,1,3,2]
+        int[] primvars:skel:jointIndices = [0,0,0,0] (
+            elementSize = 1
+            interpolation = "vertex"
+        )
+        float[] primvars:skel:jointWeights = [1,1,1,1] (
+            elementSize = 1
+            interpolation = "vertex"
+        )
+        def BlendShape "Smile" (prepend apiSchemas = ["BlendShapeInbetween:half"]) {
+            uniform vector3f[] offsets = [(0,1,0),(0,2,0)]
+            uniform int[] pointIndices = [0, 1]
+            uniform float inbetweens:half = 0.5
+            uniform vector3f[] inbetweens:half:offsets = [(1,0,0),(0,0,1)]
+        }
+        def BlendShape "Brow" {
+            uniform vector3f[] offsets = [(0,0,1),(0,0,1),(0,0,1),(0,0,1)]
+        }
+    }
+}
+"""
+
+
+def composed_scene(folder):
+    """A skinned asset referenced with an over that rebinds weights."""
+    (folder / "asset.usda").write_text(SCENE)
+    return '''#usda 1.0
+def SkelRoot "Instance" (
+    references = @./asset.usda@</Model>
+) {
+    over "Mesh" {
+        float[] primvars:skel:jointWeights = [0.5,0.5,0,1,1,0] (
+            elementSize = 2
+            interpolation = "vertex"
+        )
+    }
+}
+'''
+
+
 def verify(actual, expected, label):
     if len(actual) != len(expected) or not all(
             math.isclose(a, b, abs_tol=1e-6, rel_tol=0) for a, b in zip(actual, expected)):
@@ -99,6 +161,49 @@ def check_dual_quaternion_oracle(folder, probe):
         verify(mesh.GetPointsAttr().Get(0)[0], expected, method)
 
 
+def lightusd_points(args, path, time):
+    run = subprocess.run([str(args.skin_compare.resolve()), "--dump", str(path), str(time)],
+                         check=True, capture_output=True, text=True, timeout=30)
+    rows = {line.split()[0]: [float(v) for v in line.split()[2:]]
+            for line in run.stdout.splitlines()}
+    return rows
+
+
+def compare_with_openusd(folder, case, text, times, args, mesh="/Model/Mesh"):
+    """LightUSD vs OpenUSD BakeSkinning at each time (USDA and USDC)."""
+    source = folder / f"{case}.usda"
+    source.write_text(text)
+    crate = source.with_suffix(".usdc")
+    subprocess.run([str(args.lusdcat.resolve()), "--rewrite-layer", "--output-format", "usdc",
+                    "-o", str(crate), str(source)], check=True, capture_output=True, timeout=30)
+    stage = Usd.Stage.Open(str(source))
+    stage.SetEditTarget(stage.GetSessionLayer())
+    if not UsdSkel.BakeSkinning(stage.Traverse(), Gf.Interval(min(times), max(times))):
+        raise AssertionError(f"{case}: OpenUSD skinning bake failed")
+    pts = UsdGeom.Mesh.Get(stage, mesh)
+    for time in times:
+        expected = [c for p in pts.GetPointsAttr().Get(time) for c in p]
+        for path in (source, crate):
+            got = lightusd_points(args, path, time).get(mesh)
+            if got is None:
+                raise AssertionError(f"{case}{path.suffix}@{time}: LightUSD produced no points")
+            verify_tol(got, expected, f"{case}{path.suffix}@{time} LightUSD vs OpenUSD", 1e-5)
+    return len(times)
+
+
+def verify_tol(actual, expected, label, tol):
+    if len(actual) != len(expected) or not all(
+            math.isclose(a, b, abs_tol=tol, rel_tol=0) for a, b in zip(actual, expected)):
+        raise AssertionError(f"{label}: expected {expected}, got {actual}")
+
+
+def with_method(text, method):
+    return text.replace(
+        'rel skel:skeleton = </Model/Rig>',
+        f'rel skel:skeleton = </Model/Rig>\n'
+        f'        uniform token primvars:skel:skinningMethod = "{method}"')
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--skin-compare", type=Path, required=True)
@@ -117,7 +222,32 @@ def main():
         for case, text in cases:
             replay(Path(tmp), case, text, probes, args)
         check_dual_quaternion_oracle(Path(tmp), probes[0])
-    print(f"{len(cases) * len(probes)} animated deformation samples agree in Lean, OpenUSD, and LightUSD")
+        # Dual-quaternion skinning: Lean discriminator probe, then every case
+        # (incl. scaled joints, which DQS blends linearly) against OpenUSD.
+        dq_text = SCENE.replace(
+            "rotations = [(1,0,0,0),(1,0,0,0)]",
+            "rotations = [(1,0,0,0),(0,0,0,1)]").replace(
+            "points = [(0,0,0),(1,0,0),(0,1,0)]",
+            "points = [(1,0,0),(1,0,0),(0,1,0)]")
+        probe_path = Path(tmp) / "dq-probe.usda"
+        probe_path.write_text(with_method(dq_text, "dualQuaternion"))
+        expected = [n / d for n, d in probes[0]["dualQuaternionProbe"]]
+        verify_tol(lightusd_points(args, probe_path, 0)["/Model/Mesh"][:3], expected,
+                   "LightUSD dualQuaternion probe vs Lean", 1e-6)
+        dq_samples = 0
+        for case, text in cases + (("dq-probe", dq_text),):
+            dq_samples += compare_with_openusd(Path(tmp), f"dq-{case}",
+                                               with_method(text, "dualQuaternion"),
+                                               [0, 1, 2], args)
+        # Blend shapes with inbetweens, animated weights, composed binding.
+        blend_samples = compare_with_openusd(Path(tmp), "blendshapes", BLEND_SCENE,
+                                             [0, 0.5, 1, 1.5, 2], args)
+        blend_samples += compare_with_openusd(Path(tmp), "composed-binding",
+                                              composed_scene(Path(tmp)), [0, 1, 2], args,
+                                              mesh="/Instance/Mesh")
+    print(f"{len(cases) * len(probes)} animated deformation samples agree in Lean, OpenUSD, and LightUSD; "
+          f"LightUSD dualQuaternion matches the Lean probe and {dq_samples} OpenUSD DQS samples; "
+          f"{blend_samples} blend-shape/inbetween and composed-binding samples match OpenUSD")
 
 
 if __name__ == "__main__":
