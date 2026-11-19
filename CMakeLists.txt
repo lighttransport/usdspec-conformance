@@ -132,6 +132,17 @@ if(LIGHTUSD_BUILD_DIR AND ORACLE_PYTHON AND ORACLE_PYTHONPATH)
       --lusdcat ${LUSDCAT} --skin-compare ${SKIN_COMPARE})
     set_tests_properties(domain_skeleton_deformation PROPERTIES LABELS "conformance;schema;oracle-stock")
   endif()
+  set(GEOM_COMPARE "${LIGHTUSD_BUILD_DIR}/geom_compare")
+  if(NOT EXISTS "${GEOM_COMPARE}")
+    set(GEOM_COMPARE "${LIGHTUSD_BUILD_DIR}/src/geom_compare")
+  endif()
+  if(EXISTS "${GEOM_COMPARE}")
+    conf_test(domain_geom_runtime ${CMAKE_COMMAND} -E env
+      ${domain_oracle_env} ${ORACLE_PYTHON}
+      ${SRC}/tests/next/test-domain-geom-runtime.py
+      --lusdcat ${LUSDCAT} --geom-compare ${GEOM_COMPARE})
+    set_tests_properties(domain_geom_runtime PROPERTIES LABELS "conformance;schema;oracle-stock")
+  endif()
   set(LUSDZCONVERT ${LIGHTUSD_BUILD_DIR}/lusdzconvert)
   if(EXISTS "${LUSDZCONVERT}")
     conf_test(domain_package ${CMAKE_COMMAND} -E env
