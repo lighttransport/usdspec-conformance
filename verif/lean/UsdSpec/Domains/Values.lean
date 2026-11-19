@@ -51,10 +51,10 @@ private def scalarWitness (scalar : String) (allowed : List String) : Option Val
   match scalar with
   | "token" => some (tokenWitness allowed)
   | "bool" => some ⟨"false", "true"⟩
-  | "int" | "int64" | "float" | "double" | "half" => some ⟨"2", "7"⟩
+  | "int" | "int64" | "float" | "double" | "half" | "timecode" => some ⟨"2", "7"⟩
   | "asset" => some ⟨"@weak.bin@", "@strong.bin@"⟩
   | "string" => some ⟨"\"weak value\"", "\"strong value\""⟩
-  | "float2" | "double2" => some ⟨"(1,2)", "(4,3)"⟩
+  | "float2" | "double2" | "int2" => some ⟨"(1,2)", "(4,3)"⟩
   | "float3" | "point3f" | "point3h" | "vector3f" | "normal3f" | "color3f"
   | "double3" | "int3" | "half3" => some ⟨"(1,2,3)", "(6,5,4)"⟩
   | "float4" | "int4" => some ⟨"(1,2,3,4)", "(8,7,6,5)"⟩

@@ -8,7 +8,9 @@ import subprocess
 
 from pxr import Sdf, Usd
 
-DOMAINS = ("usdGeom", "usdSkel", "usdPhysics", "usdMtlx", "usdVol", "usdShade", "usdLux")
+DOMAINS = ("usdGeom", "usdSkel", "usdPhysics", "usdMtlx", "usdVol", "usdShade", "usdLux",
+           "usdRender", "usdMedia", "usdUI", "usdHydra", "usdProc", "usdRi", "usdSemantics",
+           "usdLod", "usdProfiles")
 TAG = "v26.11.0"
 
 

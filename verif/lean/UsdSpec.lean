@@ -51,6 +51,15 @@ import UsdSpec.Domains.UsdMtlx
 import UsdSpec.Domains.UsdVol
 import UsdSpec.Domains.UsdShade
 import UsdSpec.Domains.UsdLux
+import UsdSpec.Domains.UsdRender
+import UsdSpec.Domains.UsdMedia
+import UsdSpec.Domains.UsdUI
+import UsdSpec.Domains.UsdHydra
+import UsdSpec.Domains.UsdProc
+import UsdSpec.Domains.UsdRi
+import UsdSpec.Domains.UsdSemantics
+import UsdSpec.Domains.UsdLod
+import UsdSpec.Domains.UsdProfiles
 import UsdSpec.Domains.Validation
 import UsdSpec.Domains.VolumeValidation
 import UsdSpec.Domains.SkeletonValidation

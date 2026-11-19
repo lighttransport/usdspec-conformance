@@ -260,7 +260,11 @@ def check_property_declarations(catalog):
         for prop in schema["properties"]:
             prop_name = prop["name"]
             if schema["instance"]:
-                prop_name = prop_name.replace(f':{schema["instance"]}:', ":__INSTANCE_NAME__:")
+                instance = schema["instance"]
+                prop_name = prop_name.replace(f':{instance}:', ":__INSTANCE_NAME__:")
+                # Instance name as the final component (semantics:labels:<instance>).
+                if prop_name.endswith(f":{instance}"):
+                    prop_name = prop_name[:-len(instance)] + "__INSTANCE_NAME__"
             spec = definition.GetSchemaPropertySpec(prop_name)
             if prop["relationship"]:
                 if not isinstance(spec, Sdf.RelationshipSpec):

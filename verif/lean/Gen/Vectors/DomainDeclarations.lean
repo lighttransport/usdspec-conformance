@@ -5,6 +5,15 @@ import UsdSpec.Domains.UsdMtlx
 import UsdSpec.Domains.UsdVol
 import UsdSpec.Domains.UsdShade
 import UsdSpec.Domains.UsdLux
+import UsdSpec.Domains.UsdRender
+import UsdSpec.Domains.UsdMedia
+import UsdSpec.Domains.UsdUI
+import UsdSpec.Domains.UsdHydra
+import UsdSpec.Domains.UsdProc
+import UsdSpec.Domains.UsdRi
+import UsdSpec.Domains.UsdSemantics
+import UsdSpec.Domains.UsdLod
+import UsdSpec.Domains.UsdProfiles
 import UsdSpec.Domains.Values
 import Lean.Data.Json
 
@@ -81,7 +90,8 @@ def registryRows (catalog : List Schema) (schema : Schema) : List String :=
     ([schema.identifier, parent].map reprStr)
   let builtinRows := schema.builtInAPIs.map fun api =>
     macroRow "LIGHTUSD_DOMAIN_BUILTIN" ([schema.identifier, api].map reprStr)
-  schemaRow :: builtinRows ++ ((localProperties catalog schema).map fun prop =>
+  let kindRow := macroRow "LIGHTUSD_DOMAIN_KIND" ([schema.identifier, schema.kind].map reprStr)
+  schemaRow :: kindRow :: builtinRows ++ ((localProperties catalog schema).map fun prop =>
     let name := prop.name.replace "__INSTANCE_NAME__" "__INSTANCE__"
     let typeName := if prop.kind == .relationship then "relationship" else prop.valueType
     macroRow "LIGHTUSD_DOMAIN_PROPERTY" (([schema.identifier, name, typeName].map reprStr) ++
@@ -89,7 +99,8 @@ def registryRows (catalog : List Schema) (schema : Schema) : List String :=
 
 def files : List (String × String) :=
   let schemas := UsdGeom.catalog ++ UsdSkel.catalog ++ UsdPhysics.catalog ++
-    UsdMtlx.catalog ++ UsdVol.catalog ++ UsdShade.catalog ++ UsdLux.catalog
+    UsdMtlx.catalog ++ UsdVol.catalog ++ UsdShade.catalog ++ UsdLux.catalog ++
+    UsdRender.catalog ++ UsdMedia.catalog ++ UsdUI.catalog ++ UsdHydra.catalog ++ UsdProc.catalog ++ UsdRi.catalog ++ UsdSemantics.catalog ++ UsdLod.catalog ++ UsdProfiles.catalog
   let matrix := Json.mkObj [
     ("schemas", toJson (schemas.map (schemaJson schemas))),
     ("sampleSublayer", toJson
