@@ -3,6 +3,8 @@ import UsdSpec.Domains.UsdSkel
 import UsdSpec.Domains.UsdPhysics
 import UsdSpec.Domains.UsdMtlx
 import UsdSpec.Domains.UsdVol
+import UsdSpec.Domains.UsdShade
+import UsdSpec.Domains.UsdLux
 import UsdSpec.Domains.Values
 import Lean.Data.Json
 
@@ -87,7 +89,7 @@ def registryRows (catalog : List Schema) (schema : Schema) : List String :=
 
 def files : List (String × String) :=
   let schemas := UsdGeom.catalog ++ UsdSkel.catalog ++ UsdPhysics.catalog ++
-    UsdMtlx.catalog ++ UsdVol.catalog
+    UsdMtlx.catalog ++ UsdVol.catalog ++ UsdShade.catalog ++ UsdLux.catalog
   let matrix := Json.mkObj [
     ("schemas", toJson (schemas.map (schemaJson schemas))),
     ("sampleSublayer", toJson

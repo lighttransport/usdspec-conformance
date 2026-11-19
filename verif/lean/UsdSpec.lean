@@ -49,6 +49,8 @@ import UsdSpec.Domains.UsdSkel
 import UsdSpec.Domains.UsdPhysics
 import UsdSpec.Domains.UsdMtlx
 import UsdSpec.Domains.UsdVol
+import UsdSpec.Domains.UsdShade
+import UsdSpec.Domains.UsdLux
 import UsdSpec.Domains.Validation
 import UsdSpec.Domains.VolumeValidation
 import UsdSpec.Domains.SkeletonValidation
