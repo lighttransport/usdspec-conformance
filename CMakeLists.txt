@@ -153,6 +153,11 @@ if(LIGHTUSD_BUILD_DIR AND ORACLE_PYTHON AND ORACLE_PYTHONPATH)
       ${SRC}/tests/next/test-domain-shade-runtime.py
       --lusdcat ${LUSDCAT} --geom-compare ${GEOM_COMPARE})
     set_tests_properties(domain_shade_runtime PROPERTIES LABELS "conformance;schema;oracle-stock")
+    conf_test(domain_physics_runtime ${CMAKE_COMMAND} -E env
+      ${domain_oracle_env} ${ORACLE_PYTHON}
+      ${SRC}/tests/next/test-domain-physics-runtime.py
+      --lusdcat ${LUSDCAT} --geom-compare ${GEOM_COMPARE})
+    set_tests_properties(domain_physics_runtime PROPERTIES LABELS "conformance;schema;oracle-stock")
   endif()
   set(LUSDZCONVERT ${LIGHTUSD_BUILD_DIR}/lusdzconvert)
   if(EXISTS "${LUSDZCONVERT}")

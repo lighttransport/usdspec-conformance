@@ -1,0 +1,37 @@
+#usda 1.0
+(
+    upAxis = "X"
+)
+def PhysicsScene "Scene" {
+    vector3f physics:gravityDirection = (0, 3, 4)
+}
+def Xform "Outer" (prepend apiSchemas = ["PhysicsRigidBodyAPI"]) {
+    def Xform "Middle" (prepend apiSchemas = ["PhysicsRigidBodyAPI"]) {
+        bool physics:rigidBodyEnabled = 0
+        def Cube "Col" (prepend apiSchemas = ["PhysicsCollisionAPI"]) {
+            bool physics:collisionEnabled = 0
+        }
+    }
+}
+def Xform "Statics" (prepend apiSchemas = ["PhysicsCollisionAPI"]) {
+    def Cube "Inner" (prepend apiSchemas = ["PhysicsCollisionAPI"]) {}
+    def Xform "Plain" {}
+}
+def PhysicsJoint "J" {
+    rel physics:body0 = </Statics/Inner>
+    rel physics:body1 = </Outer/Middle/Col>
+}
+def PhysicsPrismaticJoint "Dangling" {
+    rel physics:body0 = </Nope>
+    rel physics:body1 = </Statics/Plain>
+}
+def PhysicsCollisionGroup "A" {
+    bool physics:invertFilteredGroups = 0
+    string physics:mergeGroup = "x"
+    rel physics:filteredGroups = [</B>]
+}
+def PhysicsCollisionGroup "B" {
+    bool physics:invertFilteredGroups = 1
+    string physics:mergeGroup = "x"
+    rel physics:filteredGroups = [</A>]
+}

@@ -1,0 +1,58 @@
+#usda 1.0
+(
+    metersPerUnit = 0.01
+    upAxis = "Z"
+)
+def PhysicsScene "SceneDefault" {
+}
+def PhysicsScene "SceneCustom" {
+    vector3f physics:gravityDirection = (0, -1, 0)
+    float physics:gravityMagnitude = 5
+}
+def Xform "World" {
+    def Xform "BodyA" (prepend apiSchemas = ["PhysicsRigidBodyAPI"]) {
+        rel physics:simulationOwner = </SceneCustom>
+        def Cube "Col" (prepend apiSchemas = ["PhysicsCollisionAPI"]) {
+            rel physics:simulationOwner = </SceneCustom>
+        }
+        def Xform "Child" {}
+    }
+    def Xform "BodyB" (prepend apiSchemas = ["PhysicsRigidBodyAPI"]) {
+        def Sphere "Col" (prepend apiSchemas = ["PhysicsCollisionAPI"]) {}
+    }
+    def Sphere "Static" (prepend apiSchemas = ["PhysicsCollisionAPI"]) {}
+    def PhysicsRevoluteJoint "Hinge" {
+        rel physics:body0 = </World/BodyA/Child>
+        rel physics:body1 = </World/BodyB>
+        uniform token physics:axis = "Y"
+        float physics:lowerLimit = -45
+        float physics:upperLimit = 90
+    }
+    def PhysicsFixedJoint "ToWorld" {
+        rel physics:body1 = </World/BodyB/Col>
+        bool physics:jointEnabled = 0
+        bool physics:collisionEnabled = 1
+        bool physics:excludeFromArticulation = 1
+    }
+    def PhysicsCollisionGroup "G1" (prepend apiSchemas = ["CollectionAPI:colliders"]) {
+        rel collection:colliders:includes = [</World/BodyA>]
+        rel physics:filteredGroups = [</World/G2>]
+        string physics:mergeGroup = "m"
+    }
+    def PhysicsCollisionGroup "G2" (prepend apiSchemas = ["CollectionAPI:colliders"]) {
+        rel collection:colliders:includes = [</World/BodyB>, </World/Static>]
+        bool physics:invertFilteredGroups = 1
+        string physics:mergeGroup = "m"
+    }
+    def PhysicsCollisionGroup "G3" {
+        rel physics:filteredGroups = [</World/G1>, </World/G3>]
+    }
+    def PhysicsSphericalJoint "ToStatic" {
+        rel physics:body0 = </World/Static>
+        rel physics:body1 = </World/Disabled/Inner>
+    }
+    def Xform "Disabled" (prepend apiSchemas = ["PhysicsRigidBodyAPI"]) {
+        bool physics:rigidBodyEnabled = 0
+        def Xform "Inner" {}
+    }
+}

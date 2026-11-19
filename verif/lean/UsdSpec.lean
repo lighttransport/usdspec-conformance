@@ -56,3 +56,4 @@ import UsdSpec.Domains.VolumeValidation
 import UsdSpec.Domains.SkeletonValidation
 import UsdSpec.Domains.Values
 import UsdSpec.Domains.GeomRuntime
+import UsdSpec.Domains.PhysicsResolve

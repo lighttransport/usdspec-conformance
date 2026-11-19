@@ -1,0 +1,12 @@
+#usda 1.0
+def Xform "Rig" (
+    references = @./nested.usda@</Outer>
+) {
+    over "Middle" {
+        bool physics:rigidBodyEnabled = 1
+    }
+}
+def PhysicsDistanceJoint "D" {
+    rel physics:body0 = </Rig/Middle/Col>
+    rel physics:body1 = </Rig>
+}
