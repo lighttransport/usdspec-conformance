@@ -126,6 +126,7 @@ repository whenever `usdspec-gen` output changes. Here, run
 | `UsdSpec/ValueResolution/*` | ch 12 | metadata, attribute source priority, time samples, splines (Keep Ratio, loops, AutoEase), value clips |
 | `UsdSpec/Crate/*` | L11532-12910 | header/TOC, ValueRep, integer coding, LZ4 block + framing, PATHS, list-op encoding |
 | `UsdSpec/Usda/*` | L9569-11375 | subset parser/printer, generic PEG engine, locally generated normative grammar audit data + repair proposals (`scripts/extract-usda-peg.py`) |
+| `UsdSpecC/Semantics.lean` + `Gen.lean` | — | vendored MiniC (tinygltf) + generated translation of `lspec_*` kernels via `tools/c2lean.py` |
 | `Gen/` | — | `usdspec-gen`: X-macro `.inc` vector tables for `tests/next/test_lean_vectors.cc` |
 | `Check/` | — | `usdspec-check-corpus`: supplemental-corpus replay |
 | `ISSUES.md` | — | registry of `SPEC-ISSUE: LEAN-NNN` tags → `issues/aousd/NN` |

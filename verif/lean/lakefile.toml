@@ -18,6 +18,9 @@ name = "Check"
 [[lean_lib]]
 name = "Test"
 
+[[lean_lib]]
+name = "UsdSpecC"
+
 [[lean_exe]]
 name = "usdspec-gen"
 root = "Gen.Main"
@@ -33,3 +36,7 @@ root = "Test.Main"
 [[lean_exe]]
 name = "usdspec-check-unicode"
 root = "Check.Unicode"
+
+[[lean_exe]]
+name = "usdspec-cdiff"
+root = "UsdSpecC.CDiff"
