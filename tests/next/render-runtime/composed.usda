@@ -1,0 +1,16 @@
+#usda 1.0
+def Scope "Show" (
+    references = @./policies.usda@</Render>
+) {
+    over "Settings" {
+        int2 resolution = (1024, 1024)
+        rel products = [</Show/Expand>, </Show/Width>]
+    }
+    over "Width" {
+        float pixelAspectRatio = 2
+    }
+}
+def Camera "Wide" {
+    float horizontalAperture = 36
+    float verticalAperture = 12
+}

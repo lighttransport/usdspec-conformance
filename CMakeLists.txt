@@ -163,6 +163,14 @@ if(LIGHTUSD_BUILD_DIR AND ORACLE_PYTHON AND ORACLE_PYTHONPATH)
       ${SRC}/tests/next/test-domain-physics-runtime.py
       --lusdcat ${LUSDCAT} --geom-compare ${GEOM_COMPARE})
     set_tests_properties(domain_physics_runtime PROPERTIES LABELS "conformance;schema;oracle-stock")
+    if(LOCAL_OPENUSD_PREFIX)
+      conf_test(domain_render_runtime ${Python3_EXECUTABLE}
+        ${SRC}/tests/next/test-domain-render-runtime.py
+        --lusdcat ${LUSDCAT} --geom-compare ${GEOM_COMPARE}
+        --openusd-prefix ${LOCAL_OPENUSD_PREFIX})
+      set_tests_properties(domain_render_runtime PROPERTIES LABELS "conformance;schema;oracle-local"
+        SKIP_RETURN_CODE 77)
+    endif()
     conf_test(domain_volume_runtime ${CMAKE_COMMAND} -E env
       ${domain_oracle_env} ${ORACLE_PYTHON}
       ${SRC}/tests/next/test-domain-volume-runtime.py

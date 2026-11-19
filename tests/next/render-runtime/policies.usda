@@ -1,0 +1,44 @@
+#usda 1.0
+def Camera "Wide" {
+    float horizontalAperture = 36
+    float verticalAperture = 12
+}
+def Camera "Tall" {
+    float horizontalAperture = 12
+    float verticalAperture = 24
+}
+def Scope "Render" {
+    def RenderSettings "Settings" {
+        rel camera = </Wide>
+        int2 resolution = (800, 600)
+        float pixelAspectRatio = 1.5
+        bool disableMotionBlur = 1
+        uniform token[] includedPurposes = ["default", "proxy"]
+        rel products = [</Render/Expand>, </Render/Crop>, </Render/Par>, </Render/Width>, </Render/Override>, </Render/Missing>]
+    }
+    def RenderProduct "Expand" {
+        rel orderedVars = [</Render/Color>, </Render/Nope>, </Render/Depth>]
+    }
+    def RenderProduct "Crop" {
+        rel camera = </Tall>
+        uniform token aspectRatioConformPolicy = "cropAperture"
+    }
+    def RenderProduct "Par" {
+        uniform token aspectRatioConformPolicy = "adjustPixelAspectRatio"
+        int2 resolution = (100, 100)
+    }
+    def RenderProduct "Width" {
+        uniform token aspectRatioConformPolicy = "adjustApertureWidth"
+        float4 dataWindowNDC = (0.25, 0, 0.75, 1)
+        bool disableDepthOfField = 1
+    }
+    def RenderProduct "Override" {
+        bool disableMotionBlur = 0
+        rel camera = </Tall>
+    }
+    def RenderVar "Color" {}
+    def RenderVar "Depth" {}
+}
+def RenderSettings "Fallbacks" {
+    rel products = [</Render/Expand>]
+}

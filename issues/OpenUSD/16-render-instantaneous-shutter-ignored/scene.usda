@@ -1,0 +1,12 @@
+#usda 1.0
+def Camera "Cam" {
+    float horizontalAperture = 36
+    float verticalAperture = 24
+}
+def RenderSettings "Settings" {
+    rel camera = </Cam>
+    bool instantaneousShutter = 1
+    rel products = [</P>]
+}
+def RenderProduct "P" {
+}
