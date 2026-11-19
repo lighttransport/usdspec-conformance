@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<materialx version="1.38">
+  <nodegraph name="NG_inner">
+    <input name="scale" type="float" value="2.0" />
+    <multiply name="mul" type="color3">
+      <input name="in1" type="color3" value="0.5, 0.25, 1.0" />
+      <input name="in2" type="float" interfacename="scale" />
+    </multiply>
+    <output name="out" type="color3" nodename="mul" />
+  </nodegraph>
+</materialx>

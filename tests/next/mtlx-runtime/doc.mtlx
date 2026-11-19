@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!-- Nested graphs are referenced from document-scope shader inputs; a node
+     inside one nodegraph connecting to another top-level nodegraph is a
+     LightUSD extension that OpenUSD usdMtlx (1.38 libraries) drops. -->
+<materialx version="1.38" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="lib.mtlx" />
+  <nodegraph name="NG_outer">
+    <input name="tint" type="color3" value="1, 0, 0" />
+    <add name="sum" type="color3">
+      <input name="in1" type="color3" value="0.1, 0.1, 0.1" />
+      <input name="in2" type="color3" interfacename="tint" />
+    </add>
+    <output name="color" type="color3" nodename="sum" />
+  </nodegraph>
+  <standard_surface name="SR_main" type="surfaceshader">
+    <input name="base_color" type="color3" nodegraph="NG_outer" output="color" />
+    <input name="specular_roughness" type="float" value="0.3" />
+    <input name="coat_color" type="color3" nodegraph="NG_inner" output="out" />
+  </standard_surface>
+  <surfacematerial name="M_main" type="material">
+    <input name="surfaceshader" type="surfaceshader" nodename="SR_main" />
+  </surfacematerial>
+</materialx>

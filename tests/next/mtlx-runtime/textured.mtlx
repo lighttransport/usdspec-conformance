@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<materialx version="1.38" fileprefix="textures/">
+  <nodegraph name="NG_tex">
+    <input name="file" type="filename" value="albedo.png" />
+    <input name="gain" type="float" value="0.8" />
+    <image name="img" type="color3">
+      <input name="file" type="filename" interfacename="file" />
+      <input name="default" type="color3" value="0.1, 0.2, 0.3" />
+    </image>
+    <multiply name="scaled" type="color3">
+      <input name="in1" type="color3" nodename="img" />
+      <input name="in2" type="float" interfacename="gain" />
+    </multiply>
+    <output name="out" type="color3" nodename="scaled" />
+  </nodegraph>
+  <standard_surface name="SR_pbr" type="surfaceshader">
+    <input name="base_color" type="color3" nodegraph="NG_tex" output="out" />
+    <input name="metalness" type="float" value="0.25" />
+    <input name="specular_anisotropy" type="float" value="0.5" />
+  </standard_surface>
+  <surfacematerial name="M_pbr" type="material">
+    <input name="surfaceshader" type="surfaceshader" nodename="SR_pbr" />
+  </surfacematerial>
+</materialx>

@@ -123,6 +123,11 @@ if(LIGHTUSD_BUILD_DIR AND ORACLE_PYTHON AND ORACLE_PYTHONPATH)
       list(APPEND domain_oracle_env "LD_LIBRARY_PATH=${ORACLE_MATERIALX_LIBRARY_PATH}")
     endif()
   endif()
+  conf_test(domain_mtlx_runtime ${CMAKE_COMMAND} -E env
+    ${domain_oracle_env} ${ORACLE_PYTHON}
+    ${SRC}/tests/next/test-domain-mtlx-runtime.py --lusdcat ${LUSDCAT})
+  set_tests_properties(domain_mtlx_runtime PROPERTIES LABELS "conformance;schema;oracle-stock"
+    SKIP_RETURN_CODE 77)
   conf_test(domain_roundtrip ${CMAKE_COMMAND} -E env
     ${domain_oracle_env} ${ORACLE_PYTHON}
     ${SRC}/tests/next/test-domain-roundtrip.py --lusdcat ${LUSDCAT} ${domain_oracle_args})
