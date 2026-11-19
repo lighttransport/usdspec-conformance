@@ -13,11 +13,12 @@
 Both the authored USDA and a LightUSD-written USDC are replayed.
 """
 import argparse
+import json
 from pathlib import Path
 import subprocess
 import tempfile
 
-from pxr import Usd, UsdShade
+from pxr import Sdf, Usd, UsdShade
 
 HEAD = "#usda 1.0\n"
 
@@ -161,6 +162,9 @@ def Xform "World" (
 COLLECTIONS = ["nearest", "root", "explicit", "outer", "inner"]
 
 
+VECTORS = Path(__file__).resolve().parent / "generated/lean/domain-shade-binding-vectors.json"
+
+
 def write_pair(folder, name, text, lusdcat):
     source = folder / f"{name}.usda"
     source.write_text(HEAD + text)
@@ -233,10 +237,35 @@ def main():
                         failures.append(f"collection {name}{path.suffix} {prim}: "
                                         f"LightUSD {got.get(prim)} OpenUSD {want}")
                     members += 1
+        # Lean ShadeBinding vectors vs both implementations.
+        vectors = json.loads(VECTORS.read_text())
+        lean_checked = 0
+        for name, rows in vectors["collections"].items():
+            query = Usd.CollectionAPI(world, name).ComputeMembershipQuery()
+            got = dump(tool, "--dump-collection", paths[0], "/World", name)
+            for prim, want in rows.items():
+                for who, have in (("OpenUSD", query.IsPathIncluded(Sdf.Path(prim))),
+                                  ("LightUSD", got.get(prim) == "1")):
+                    if have != want:
+                        failures.append(f"Lean collection {name} {prim}: {who} {have} != {want}")
+                lean_checked += 1
+        bpaths = write_pair(folder, "lean-bindings", BINDING_SCENES["collection-bindings"],
+                            args.lusdcat.resolve())
+        bstage = Usd.Stage.Open(str(bpaths[0]))
+        got = dump(tool, "--dump-binding", bpaths[0], "all")
+        for prim, want in vectors["allPurposeBindings"].items():
+            material, _ = UsdShade.MaterialBindingAPI(bstage.GetPrimAtPath(prim)).ComputeBoundMaterial(
+                UsdShade.Tokens.allPurpose)
+            pxr = str(material.GetPath()) if material else "-"
+            for who, have in (("OpenUSD", pxr), ("LightUSD", got.get(prim))):
+                if have != want:
+                    failures.append(f"Lean binding {prim}: {who} {have} != {want}")
+            lean_checked += 1
     if failures:
         raise SystemExit("\n".join(failures))
     print(f"{bindings} material bindings, {surfaces} render-context surface terminals and "
-          f"{members} collection memberships agree in OpenUSD and LightUSD")
+          f"{members} collection memberships agree in OpenUSD and LightUSD; "
+          f"{lean_checked} Lean ShadeBinding vectors agree with both")
 
 
 if __name__ == "__main__":
