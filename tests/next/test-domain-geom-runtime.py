@@ -224,6 +224,24 @@ def Xform "W" {
         uniform token axis = "Y"
         double length = 3
     }
+    def SphereLight "SphereLightDefault" {}
+    def SphereLight "SphereLightPoint" {
+        float inputs:radius = 2
+        bool treatAsPoint = true
+    }
+    def CylinderLight "CylinderLight" {
+        float inputs:length = 4
+        float inputs:radius = 0.25
+        bool treatAsLine = true
+    }
+    def DiskLight "DiskLight" {
+        float inputs:radius = 3
+    }
+    def RectLight "RectLight" {
+        float inputs:width = 2
+        float inputs:height = 6
+    }
+    def PortalLight "PortalLight" {}
 }
 ''', [0, 5])
 
