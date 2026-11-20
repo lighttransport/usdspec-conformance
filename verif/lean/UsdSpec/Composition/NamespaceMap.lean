@@ -328,4 +328,28 @@ theorem compose_relocates_example_noIdentity :
     compose [(["A", "B"], ["A", "C"])] [(["Ref"], ["A"])] = [(["Ref", "B"], ["A", "C"])] := by
   decide
 
+/-! ## Inheritance to descendants
+
+The implementation applies an instance's composed mapping to every descendant
+until a nested instance introduces a new mapping. The literal `mapPath` rule
+has this property for a single source prefix; make it a named theorem so runtime
+proxy propagation can be checked against it. -/
+theorem mapPath_single_append (src tgt : PrimPath) (suffix : PrimPath) :
+    mapPath [(src, tgt)] (src ++ suffix) = some (tgt ++ suffix) := by
+  have hbest : best [(src, tgt)] (src ++ suffix) = some (src, tgt) := by
+    apply best_eq_of_unique
+    · simp
+    · simp
+    · intro a ha hap
+      simp at ha
+      rcases ha with rfl
+      rfl
+  rw [mapPath, hbest]
+  simp
+
+theorem mapPath_single_self (src tgt : PrimPath) :
+    mapPath [(src, tgt)] src = some tgt := by
+  have h := mapPath_single_append src tgt []
+  simpa using h
+
 end UsdSpec.NamespaceMap

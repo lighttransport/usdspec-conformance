@@ -39,6 +39,7 @@ import UsdSpec.ValueResolution.Spline
 import UsdSpec.ValueResolution.SplineBounds
 import UsdSpec.ValueResolution.Clips
 import UsdSpec.Composition.Instancing
+import UsdSpec.Composition.InstanceNamespaceMap
 import UsdSpec.Crate.Lz4
 import UsdSpec.Unicode.NormTables
 import UsdSpec.Unicode.Normalize
@@ -69,5 +70,7 @@ import UsdSpec.Domains.SkinningTheory
 import UsdSpec.Domains.GeomTheory
 import UsdSpec.Domains.TerminalTheory
 import UsdSpec.Domains.MtlxResolve
+import UsdSpec.Domains.LightLinking
+import UsdSpec.Domains.Skinning3D
 import UsdSpec.Domains.PhysicsResolve
 import UsdSpec.Domains.ShadeBinding

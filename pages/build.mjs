@@ -14,11 +14,38 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PAGES_DIR = path.join(REPO_ROOT, 'pages');
 const GITHUB_BASE = 'https://github.com/lighttransport/usdspec-conformance';
 const SITE_NAME = 'usdspec-conformance';
+
+// Build provenance shown in every generated page's footer. Prefer the
+// workflow-provided SHA; fall back to the local git checkout. The date is
+// reproducible when SOURCE_DATE_EPOCH is set.
+function buildInfo() {
+  let hash = process.env.GITHUB_SHA || '';
+  if (!hash) {
+    try {
+      hash = execFileSync('git', ['rev-parse', 'HEAD'], {
+        cwd: REPO_ROOT,
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'ignore'],
+      }).trim();
+    } catch {
+      hash = '';
+    }
+  }
+  const short = hash ? hash.slice(0, 12) : 'unknown';
+  const epoch = process.env.SOURCE_DATE_EPOCH;
+  const date = epoch && Number.isFinite(Number(epoch))
+    ? new Date(Number(epoch) * 1000).toISOString()
+    : new Date().toISOString();
+  return { hash: short, full: hash, date };
+}
+
+const BUILD = buildInfo();
 
 // Site manifest. `src` is repo-root-relative markdown; `out` is the output
 // base name. `label` is the nav label; `title` overrides <title>.
@@ -348,6 +375,7 @@ async function rewriteLinkHref(dir, href) {
 const LINK_RE = /\]\(([^()\s]+)\)/g;
 
 async function main() {
+  console.log(`build: commit ${BUILD.hash} at ${BUILD.date}`);
   // Resolve all link rewrites first (they can be async).
   const prepared = [];
   for (const p of PAGES) {
@@ -423,6 +451,9 @@ ${body}
     <p>An independent project by Light Transport Entertainment Inc. Not affiliated with or endorsed by the Alliance for OpenUSD (AOUSD).
     Source: <a href="${GITHUB_BASE}">github.com/lighttransport/usdspec-conformance</a>.
     Each page is also available as raw markdown for AI agents at the same path with a <code>.md</code> extension.</p>
+    <p class="build-info">Built from commit ${BUILD.full
+      ? `<a href="${GITHUB_BASE}/commit/${escapeHtml(BUILD.full)}"><code>${escapeHtml(BUILD.hash)}</code></a>`
+      : `<code>${escapeHtml(BUILD.hash)}</code>`} at <time datetime="${escapeHtml(BUILD.date)}">${escapeHtml(BUILD.date)}</time>.</p>
   </div>
 </footer>
 </body>
@@ -457,6 +488,13 @@ ${body}
     .map((p) => `<a href="./${p.out}.html">${p.label}</a>`)
     .join(' &middot; ')}</p>
 </main>
+<footer class="site-footer">
+  <div class="wrap">
+    <p class="build-info">Built from commit ${BUILD.full
+      ? `<a href="${GITHUB_BASE}/commit/${escapeHtml(BUILD.full)}"><code>${escapeHtml(BUILD.hash)}</code></a>`
+      : `<code>${escapeHtml(BUILD.hash)}</code>`} at <time datetime="${escapeHtml(BUILD.date)}">${escapeHtml(BUILD.date)}</time>.</p>
+  </div>
+</footer>
 </body>
 </html>
 `;

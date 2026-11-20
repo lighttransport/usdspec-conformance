@@ -62,4 +62,33 @@ theorem self_loop_none {α} (d o : String → Option α) (i fuel : Nat) :
   | zero => simp [resolve]
   | succ k ih => simpa [resolve] using ih
 
+/-! ### Resolution across documents
+
+A name used by `nodegraph=` or a `nodedef` reference is looked up in the documents in search order (the
+referencing document first, then its `xi:include`s and the libraries); the first document that defines it
+wins, so a local definition shadows a library one and the result never depends on later documents. -/
+
+/-- The first document in search order that defines `name`. -/
+def lookup {α} (docs : List (String → Option α)) (name : String) : Option α :=
+  docs.findSome? (fun d => d name)
+
+theorem lookup_first {α} (d : String → Option α) (rest : List (String → Option α)) (name : String)
+    (v : α) (h : d name = some v) : lookup (d :: rest) name = some v := by
+  simp [lookup, List.findSome?_cons, h]
+
+theorem lookup_skip {α} (d : String → Option α) (rest : List (String → Option α)) (name : String)
+    (h : d name = none) : lookup (d :: rest) name = lookup rest name := by
+  simp [lookup, List.findSome?_cons, h]
+
+/-- A local definition shadows a library definition of the same name. -/
+theorem local_shadows_library {α} (loc lib : String → Option α) (name : String) (v w : α)
+    (hl : loc name = some v) (hb : lib name = some w) : lookup [loc, lib] name = some v :=
+  lookup_first loc [lib] name v hl
+
+/-- Later documents are not consulted once an earlier one defines the name. -/
+theorem lookup_ignores_later {α} (d : String → Option α) (r₁ r₂ : List (String → Option α))
+    (name : String) (v : α) (h : d name = some v) :
+    lookup (d :: r₁) name = lookup (d :: r₂) name := by
+  rw [lookup_first d r₁ name v h, lookup_first d r₂ name v h]
+
 end UsdSpec.Domains.MtlxResolve
