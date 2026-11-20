@@ -39,6 +39,7 @@ import UsdSpec.ValueResolution.Spline
 import UsdSpec.ValueResolution.SplineBounds
 import UsdSpec.ValueResolution.Clips
 import UsdSpec.Composition.Instancing
+import UsdSpec.Composition.InstanceNamespaceMap
 import UsdSpec.Crate.Lz4
 import UsdSpec.Unicode.NormTables
 import UsdSpec.Unicode.Normalize
