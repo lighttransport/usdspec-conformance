@@ -1,7 +1,8 @@
 <?xml version="1.0"?>
 <!-- Nested graphs are referenced from document-scope shader inputs; a node
      inside one nodegraph connecting to another top-level nodegraph is a
-     LightUSD extension that OpenUSD usdMtlx (1.38 libraries) drops. -->
+     LightUSD extension that OpenUSD usdMtlx drops (checked with the MaterialX 1.38.10 and 1.39.6
+     libraries: the input stays unconnected and has no value). -->
 <materialx version="1.38" xmlns:xi="http://www.w3.org/2001/XInclude">
   <xi:include href="lib.mtlx" />
   <nodegraph name="NG_outer">
