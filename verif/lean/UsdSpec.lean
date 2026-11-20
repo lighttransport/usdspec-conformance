@@ -65,5 +65,8 @@ import UsdSpec.Domains.VolumeValidation
 import UsdSpec.Domains.SkeletonValidation
 import UsdSpec.Domains.Values
 import UsdSpec.Domains.GeomRuntime
+import UsdSpec.Domains.SkinningTheory
+import UsdSpec.Domains.GeomTheory
+import UsdSpec.Domains.TerminalTheory
 import UsdSpec.Domains.PhysicsResolve
 import UsdSpec.Domains.ShadeBinding
