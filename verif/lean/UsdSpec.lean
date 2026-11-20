@@ -68,5 +68,6 @@ import UsdSpec.Domains.GeomRuntime
 import UsdSpec.Domains.SkinningTheory
 import UsdSpec.Domains.GeomTheory
 import UsdSpec.Domains.TerminalTheory
+import UsdSpec.Domains.MtlxResolve
 import UsdSpec.Domains.PhysicsResolve
 import UsdSpec.Domains.ShadeBinding
